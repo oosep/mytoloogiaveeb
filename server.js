@@ -23,6 +23,7 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const rateLimit = require('express-rate-limit');
 
 /*
  * Andmebaasi draiver.
@@ -89,12 +90,77 @@ try { require('dotenv').config(); } catch (_) { /* dotenv pole kohustuslik */ }
 
 const PORT         = process.env.PORT         || 3000;
 const JWT_SECRET   = process.env.JWT_SECRET   || 'mytoloogiaveeb-arenduse-saladus-muuda-toodangus';
+if (JWT_SECRET === 'mytoloogiaveeb-arenduse-saladus-muuda-toodangus') {
+  console.warn('\n⚠️  HOIATUS: JWT_SECRET on vaikeväärtus! Sea .env failis oma tugev saladus.\n');
+}
 const DB_PATH      = process.env.DB_PATH      || path.join(__dirname, 'mytoloogia.db');
 const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN || '';
 
 const app = express();
 app.use(express.json({ limit: '5mb' }));
 app.use(cookieParser());
+
+// --- Turvalisus: rate limiting --------------------------------------------
+
+// Üldine piirmäär kõigile API päringutele
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutit
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { viga: 'Liiga palju päringuid, proovi mõne minuti pärast uuesti.' },
+});
+
+// Rangem piirmäär sisselogimisele ja registreerimisele (brute force kaitse)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutit
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { viga: 'Liiga palju sisselogimiskatseid, proovi 15 minuti pärast uuesti.' },
+  skipSuccessfulRequests: true, // edukaid päringuid ei loeta
+});
+
+app.use('/api/', apiLimiter);
+
+// --- Turvaline Origin kontroll (CSRF kaitse) ------------------------------
+// Toodangus luba ainult oma domeeni päringuid.
+const LUBATUD_ORIGINID = (process.env.LUBATUD_ORIGINID || '')
+  .split(',').map(s => s.trim()).filter(Boolean);
+
+app.use('/api/', (req, res, next) => {
+  // GET ja HEAD on ohutud (ei muuda andmeid)
+  if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
+  const origin = req.headers.origin || req.headers.referer || '';
+  // Luba localhost arenduses alati
+  if (!origin || origin.includes('localhost') || origin.includes('127.0.0.1')) return next();
+  // Toodangus: kontrolli lubatud originide nimekirja
+  if (LUBATUD_ORIGINID.length > 0 && !LUBATUD_ORIGINID.some(o => origin.startsWith(o))) {
+    return res.status(403).json({ viga: 'Keelatud päritolu.' });
+  }
+  next();
+});
+
+// --- Sisendi valideerimise abifunktsioonid --------------------------------
+const LUBATUD_SFAARID = ['Mets', 'Vesi', 'Kodu', 'Ilm', 'Kivid ja koopad', 'Põrgu', 'Muud'];
+
+function valideeriOlend(body) {
+  const vead = [];
+  if (!body.nimi || !body.nimi.trim()) vead.push('Olendi nimi on kohustuslik.');
+  if (body.nimi && body.nimi.trim().length > 200) vead.push('Nimi on liiga pikk (max 200 tähemärki).');
+  if (body.sfaar && !LUBATUD_SFAARID.includes(body.sfaar)) vead.push('Tundmatu sfäär.');
+  if (body.kirjeldus && body.kirjeldus.length > 50000) vead.push('Kirjeldus on liiga pikk.');
+  if (body.pilt_url && body.pilt_url.length > 1000) vead.push('Pildi URL on liiga pikk.');
+  if (body.heli_url && body.heli_url.length > 1000) vead.push('Heli URL on liiga pikk.');
+  return vead;
+}
+
+// --- Audit log ------------------------------------------------------------
+function auditLog(kasutaja, tegevus, üksikasjad) {
+  const kellaaeg = new Date().toISOString();
+  const kasutajaInfo = kasutaja ? (kasutaja.kasutajanimi + '(roll:' + kasutaja.roll + ')') : 'anonüüm';
+  console.log('[AUDIT] ' + kellaaeg + ' | ' + kasutajaInfo + ' | ' + tegevus + ' | ' + JSON.stringify(üksikasjad));
+}
 
 // --- Andmebaasi ühendus ja initsialiseerimine -----------------------------
 const db = new Database(DB_PATH);
@@ -375,7 +441,7 @@ function olendTaielik(row) {
 // --- Autentimine ----------------------------------------------------------
 
 // Registreerimine
-app.post('/api/auth/register', (req, res) => {
+app.post('/api/auth/register', authLimiter, (req, res) => {
   const { kasutajanimi, email, parool } = req.body || {};
   if (!kasutajanimi || !email || !parool) {
     return res.status(400).json({ viga: 'Kasutajanimi, email ja parool on kohustuslikud.' });
@@ -397,12 +463,12 @@ app.post('/api/auth/register', (req, res) => {
     .run(kasutajanimi, email, hash, 'toimetaja');
   const user = db.prepare('SELECT * FROM kasutajad WHERE id = ?').get(info.lastInsertRowid);
   const token = signToken(user);
-  res.cookie('token', token, { httpOnly: true, sameSite: 'lax', maxAge: 7 * 864e5 });
+  res.cookie('token', token, { httpOnly: true, sameSite: 'strict', maxAge: 7 * 864e5 });
   res.json({ token, kasutaja: { id: user.id, kasutajanimi: user.kasutajanimi, email: user.email, roll: user.roll } });
 });
 
 // Sisselogimine
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', authLimiter, (req, res) => {
   const { kasutajanimi, parool } = req.body || {};
   if (!kasutajanimi || !parool) {
     return res.status(400).json({ viga: 'Kasutajanimi ja parool on kohustuslikud.' });
@@ -414,7 +480,7 @@ app.post('/api/auth/login', (req, res) => {
     return res.status(401).json({ viga: 'Vale kasutajanimi või parool.' });
   }
   const token = signToken(user);
-  res.cookie('token', token, { httpOnly: true, sameSite: 'lax', maxAge: 7 * 864e5 });
+  res.cookie('token', token, { httpOnly: true, sameSite: 'strict', maxAge: 7 * 864e5 });
   res.json({ token, kasutaja: { id: user.id, kasutajanimi: user.kasutajanimi, email: user.email, roll: user.roll } });
 });
 
@@ -479,7 +545,8 @@ app.get('/api/olendid/:id', (req, res) => {
 // Loo uus olend (toimetaja, admin)
 app.post('/api/olendid', authRequired, rollRequired('toimetaja', 'admin'), (req, res) => {
   const { nimi, kirjeldus, sfaar, pilt_url, heli_url, asukohad, allikad } = req.body || {};
-  if (!nimi || !nimi.trim()) return res.status(400).json({ viga: 'Olendi nimi on kohustuslik.' });
+  const valVead = valideeriOlend(req.body || {});
+  if (valVead.length) return res.status(400).json({ viga: valVead.join(' ') });
 
   // Toimetaja sisu läheb modereerimisele; admini sisu avaldatakse kohe.
   const staatus = req.user.roll === 'admin' ? 'avaldatud' : 'modereerimisel';
@@ -561,8 +628,8 @@ app.patch('/api/olendid/:id/staatus', authRequired, rollRequired('admin'), (req,
   }
   const row = db.prepare('SELECT * FROM olendid WHERE id = ?').get(req.params.id);
   if (!row) return res.status(404).json({ viga: 'Olendit ei leitud.' });
-  db.prepare("UPDATE olendid SET staatus = ?, muudetud_at = datetime('now') WHERE id = ?")
-    .run(staatus, req.params.id);
+  db.prepare("UPDATE olendid SET staatus = ?, muudetud_at = datetime('now') WHERE id = ?").run(staatus, req.params.id);
+  auditLog(req.user, 'MUUDA_STAATUS', { id: req.params.id, uus_staatus: staatus });
   res.json({ olend: olendTaielik(db.prepare('SELECT * FROM olendid WHERE id = ?').get(req.params.id)) });
 });
 
@@ -574,6 +641,7 @@ app.delete('/api/olendid/:id', authRequired, rollRequired('toimetaja', 'admin'),
     return res.status(403).json({ viga: 'Saad kustutada ainult enda loodud olendeid.' });
   }
   db.prepare('DELETE FROM olendid WHERE id = ?').run(req.params.id);
+  auditLog(req.user, 'KUSTUTA_OLEND', { id: req.params.id, nimi: row.nimi });
   res.json({ ok: true });
 });
 
@@ -637,6 +705,12 @@ app.get('*', (req, res, next) => {
 });
 
 // --- Käivitamine ----------------------------------------------------------
+// --- Vigade käsitleja (ei leki Stack trace't kasutajale) ------------------
+app.use((err, req, res, _next) => {
+  console.error('[VIGA]', err);
+  res.status(500).json({ viga: 'Serveri sisemine viga. Proovi hiljem uuesti.' });
+});
+
 app.listen(PORT, () => {
   console.log(`\n🜂  Eesti Mütoloogiaveeb töötab: http://localhost:${PORT}\n`);
 });
