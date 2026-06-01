@@ -1,0 +1,18 @@
+# Sõltuvused — tekivad "npm install" käigus automaatselt
+node_modules/
+
+# Saladused — EI lähe kunagi GitHubi!
+.env
+
+# Andmebaasifail — tekib serveril automaatselt
+*.db
+*.db-shm
+*.db-wal
+
+# Logid
+*.log
+npm-debug.log*
+
+# OS-i jäägid
+.DS_Store
+Thumbs.db

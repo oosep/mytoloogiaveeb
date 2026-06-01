@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Eesti Mütoloogiaveeb</title>
+  <meta name="description" content="Eesti mütoloogilise pärimuse infosüsteem — olendid ja lood seotud 1917. aasta kihelkondadega." />
+
+  <!-- Google Fonts: Cormorant Garamond (display serif) + Spectral (body serif) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+
+  <!-- Mapbox GL JS -->
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css" rel="stylesheet" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js"></script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ================= NAVIGATSIOONIRIBA ================= -->
+  <header class="navbar" id="navbar">
+    <a href="#/" class="brand" data-nav>
+      <span class="brand-mark">ᛗ</span>
+      <span class="brand-text">Mütoloogia<em>veeb</em></span>
+    </a>
+
+    <button class="nav-toggle" id="nav-toggle" aria-label="Menüü">
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav class="nav-links" id="nav-links">
+      <a href="#/" data-nav>Avaleht</a>
+      <a href="#/olendid" data-nav>Olendid</a>
+      <a href="#/kaart" data-nav>Kaart</a>
+      <a href="#/lisa" data-nav data-roll="toimetaja,admin">Lisa olend</a>
+      <a href="#/admin" data-nav data-roll="admin">Haldus</a>
+
+      <div class="nav-auth" id="nav-auth">
+        <!-- Täidetakse JS-iga: sisselogimise nupp VÕI kasutajamenüü -->
+      </div>
+    </nav>
+  </header>
+
+  <!-- ================= VAATED (V1–V6) ================= -->
+  <main id="app">
+
+    <!-- V1 — AVALEHT -->
+    <section class="view" id="view-home" hidden>
+      <div class="hero">
+        <div class="hero-bg" aria-hidden="true"></div>
+        <div class="hero-inner">
+          <p class="hero-eyebrow">Eesti rahvapärimuse digitaalne arhiiv</p>
+          <h1 class="hero-title">Olendid, kes elavad<br /><em>meie maa lugudes</em></h1>
+          <p class="hero-lead">
+            Avasta näkke, kratte ja metsavaime — Eesti mütoloogilised olendid
+            koondatud sfääride kaupa ning seotud 1917. aasta kihelkondade kaartiga.
+          </p>
+          <form class="hero-search" id="hero-search" autocomplete="off">
+            <input type="search" id="hero-search-input" placeholder="Otsi olendit, nt „Näkk“…" aria-label="Otsi olendit" />
+            <button type="submit">Otsi</button>
+          </form>
+          <div class="hero-cta">
+            <a href="#/kaart" data-nav class="btn btn-primary">Ava kaart →</a>
+            <a href="#/olendid" data-nav class="btn btn-ghost">Sirvi olendeid</a>
+          </div>
+        </div>
+      </div>
+
+      <section class="section section-sfaarid">
+        <header class="section-head">
+          <h2>Mütoloogilised sfäärid</h2>
+          <p>Iga olend kuulub ühte seitsmest pärimuse maailmast.</p>
+        </header>
+        <div class="sfaar-grid" id="sfaar-grid"><!-- JS --></div>
+      </section>
+
+      <section class="section section-esile">
+        <header class="section-head">
+          <h2>Esile tõstetud olendid</h2>
+          <p>Tuntuimad tegelased Eesti rahvajuttudest.</p>
+        </header>
+        <div class="esile-grid" id="esile-grid"><!-- JS --></div>
+      </section>
+
+      <section class="section section-tutvustus">
+        <div class="tutvustus-card">
+          <h2>Miks see arhiiv?</h2>
+          <p>
+            Eesti mütoloogiline pärimus on sajandite jooksul kandunud suust suhu —
+            näkk veekogus, kratt rehetoas, metsaema puude vahel. See infosüsteem
+            koondab lood ühte kohta ja seob need geograafiliselt 1917. aasta
+            kihelkondade piiridega, et pärimust saaks uurida nii teema kui ka
+            paikkonna järgi.
+          </p>
+          <p>
+            Toimetajad saavad lisada uut sisu, mis läheb enne avaldamist
+            modereerimisele — nii püsib arhiiv usaldusväärsena.
+          </p>
+        </div>
+      </section>
+
+      <footer class="site-footer">
+        <p>Eesti Mütoloogiaveeb · Tallinna Ülikool · 2026</p>
+      </footer>
+    </section>
+
+    <!-- V2 — OLENDITE NIMEKIRI -->
+    <section class="view" id="view-olendid" hidden>
+      <div class="page-head">
+        <h1>Olendite nimekiri</h1>
+        <p>Filtreeri ja sorteeri Eesti mütoloogilisi olendeid.</p>
+      </div>
+
+      <div class="filters" id="olendid-filters">
+        <input type="search" id="f-otsing" placeholder="Otsi nime järgi…" />
+        <select id="f-sfaar"><option value="">Kõik sfäärid</option></select>
+        <select id="f-kihelkond"><option value="">Kõik kihelkonnad</option></select>
+        <select id="f-sort">
+          <option value="nimi-asc">Nimi A→Ü</option>
+          <option value="nimi-desc">Nimi Ü→A</option>
+          <option value="sfaar">Sfääri järgi</option>
+        </select>
+      </div>
+
+      <div class="olend-grid" id="olend-grid"><!-- JS --></div>
+      <p class="empty-msg" id="olendid-empty" hidden>Ühtegi olendit ei leitud.</p>
+    </section>
+
+    <!-- V3 — OLENDI DETAILVAADE -->
+    <section class="view" id="view-detail" hidden>
+      <button class="back-link" data-back>← Tagasi</button>
+      <div id="detail-content"><!-- JS --></div>
+    </section>
+
+    <!-- KAART (kasutab V2/V3 loogikat külgpaneeliga) -->
+    <section class="view view-map" id="view-kaart" hidden>
+      <div id="map"></div>
+      <aside class="map-panel" id="map-panel">
+        <button class="map-panel-close" id="map-panel-close" aria-label="Sulge">&times;</button>
+        <div id="map-panel-default">
+          <h2>Eesti Kihelkonnad 1917</h2>
+          <p>Liiguta hiir kihelkonna kohale ja klõpsa, et näha sellega seotud mütoloogilisi olendeid.</p>
+        </div>
+        <div id="map-panel-detail" hidden>
+          <span class="map-panel-maakond" id="mp-maakond"></span>
+          <h2 id="mp-nimi">Kihelkond</h2>
+          <p class="map-panel-kub" id="mp-kubermang"></p>
+          <h3 class="map-panel-subtitle">Seotud olendid</h3>
+          <div id="mp-olendid"></div>
+        </div>
+      </aside>
+    </section>
+
+    <!-- V4 — ADMIN HALDUSVAADE -->
+    <section class="view" id="view-admin" hidden>
+      <div class="page-head">
+        <h1>Halduslaud</h1>
+        <p>Halda olendeid, kinnita modereerimisel sisu ja muuda staatusi.</p>
+      </div>
+      <div class="admin-stats" id="admin-stats"><!-- JS --></div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr><th>Nimi</th><th>Sfäär</th><th>Autor</th><th>Staatus</th><th>Tegevused</th></tr>
+          </thead>
+          <tbody id="admin-tbody"><!-- JS --></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- V5 — KASUTAJA PROFIIL -->
+    <section class="view" id="view-profiil" hidden>
+      <div class="page-head"><h1>Minu profiil</h1></div>
+      <div class="profiil-card" id="profiil-card"><!-- JS --></div>
+      <h2 class="profiil-sub">Minu lemmikud</h2>
+      <div class="olend-grid" id="lemmik-grid"><!-- JS --></div>
+      <p class="empty-msg" id="lemmik-empty" hidden>Sul pole veel lemmikuid. Lisa olendi vaates ☆.</p>
+    </section>
+
+    <!-- V6 — SISU LISAMISE / MUUTMISE VORM -->
+    <section class="view" id="view-vorm" hidden>
+      <button class="back-link" data-back>← Tagasi</button>
+      <div class="page-head"><h1 id="vorm-pealkiri">Lisa uus olend</h1></div>
+      <form class="olend-vorm" id="olend-vorm" autocomplete="off">
+        <input type="hidden" id="vorm-id" />
+
+        <div class="vorm-row">
+          <label>Nimi *
+            <input type="text" id="vorm-nimi" required placeholder="nt Näkk" />
+          </label>
+          <label>Sfäär *
+            <select id="vorm-sfaar" required></select>
+          </label>
+        </div>
+
+        <label>Kirjeldus
+          <textarea id="vorm-kirjeldus" rows="6" placeholder="Olendi pärimus, omadused ja lood…"></textarea>
+        </label>
+
+        <div class="vorm-row">
+          <label>Pildi URL
+            <input type="url" id="vorm-pilt" placeholder="https://…" />
+          </label>
+          <label>Heli URL (mp3 / wav)
+            <input type="url" id="vorm-heli" placeholder="https://…" />
+          </label>
+        </div>
+
+        <div class="vorm-block">
+          <div class="vorm-block-head">
+            <span>Asukohad (kihelkonnad)</span>
+            <button type="button" class="btn-small" id="lisa-asukoht">+ Lisa asukoht</button>
+          </div>
+          <div id="asukoht-list"></div>
+        </div>
+
+        <div class="vorm-block">
+          <div class="vorm-block-head">
+            <span>Allikaviited</span>
+            <button type="button" class="btn-small" id="lisa-viide">+ Lisa viide</button>
+          </div>
+          <div id="viide-list"></div>
+        </div>
+
+        <div class="vorm-actions">
+          <button type="submit" class="btn btn-primary" id="vorm-salvesta">Salvesta olend</button>
+          <p class="vorm-teade" id="vorm-teade"></p>
+        </div>
+      </form>
+    </section>
+
+  </main>
+
+  <!-- ================= MODAALID ================= -->
+
+  <!-- Sisselogimise / registreerimise modaal -->
+  <div class="modal" id="auth-modal" hidden>
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-box auth-box">
+      <button class="modal-close" data-close-modal aria-label="Sulge">&times;</button>
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login">Logi sisse</button>
+        <button class="auth-tab" data-tab="register">Loo konto</button>
+      </div>
+
+      <form id="form-login" class="auth-form">
+        <label>Kasutajanimi või email
+          <input type="text" id="login-kasutajanimi" required />
+        </label>
+        <label>Parool
+          <input type="password" id="login-parool" required />
+        </label>
+        <button type="submit" class="btn btn-primary">Logi sisse</button>
+        <p class="auth-hint">Proovi: <b>admin / admin123</b></p>
+      </form>
+
+      <form id="form-register" class="auth-form" hidden>
+        <label>Kasutajanimi
+          <input type="text" id="reg-kasutajanimi" required />
+        </label>
+        <label>Email
+          <input type="email" id="reg-email" required />
+        </label>
+        <label>Parool (min 6 tähemärki)
+          <input type="password" id="reg-parool" required minlength="6" />
+        </label>
+        <button type="submit" class="btn btn-primary">Registreeru</button>
+      </form>
+
+      <p class="modal-error" id="auth-error" hidden></p>
+    </div>
+  </div>
+
+  <!-- Pildi täisekraani lightbox -->
+  <div class="lightbox" id="lightbox" hidden>
+    <button class="lightbox-close" id="lightbox-close" aria-label="Sulge">&times;</button>
+    <img id="lightbox-img" src="" alt="" />
+  </div>
+
+  <!-- Teavitused (toast) -->
+  <div class="toast-wrap" id="toast-wrap"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

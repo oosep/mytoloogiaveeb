@@ -1,0 +1,21 @@
+{
+  "name": "mytoloogiaveeb-projekt5",
+  "version": "1.0.0",
+  "description": "Eesti Mütoloogiaveeb — hariduslik ja kultuuriline infosüsteem Eesti mütoloogilise pärimuse kohta, seotud 1917. aasta kihelkondadega.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "license": "MIT"
+}
