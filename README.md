@@ -62,5 +62,9 @@ SQLite töötab Zone.ee-s ilma lisaseadistuseta; MySQL-i kasutamiseks kohanda
 
 ## Mapbox
 
-Mapboxi avalik token on `app.js` failis. Tootmises asenda see oma tokeniga
-(piira lubatud domeenidega Mapboxi konsoolis).
+Mapboxi token loetakse keskkonnamuutujast `MAPBOX_TOKEN`.
+
+- **Kohalikul arendamisel:** kopeeri `.env.example` failiks `.env` ja lisa oma token sinna.
+- **Zone.ee-l:** sea `MAPBOX_TOKEN` Zone App Manageri keskkonnamuutujate all.
+
+Token ei ole koodis ega lähe GitHubi.
