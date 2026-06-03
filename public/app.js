@@ -382,7 +382,7 @@
     mapboxgl.accessToken = MAPBOX_TOKEN;
     const m = new mapboxgl.Map({
       container: el,
-      style: 'mapbox://styles/mapbox/light-v11',
+      style: 'mapbox://styles/mapbox/streets-v12',
       center: [25.5, 58.7],
       zoom: 6.2,
       interactive: true,
@@ -429,7 +429,7 @@
     mapboxgl.accessToken = MAPBOX_TOKEN;
     const map = new mapboxgl.Map({
       container: 'map',
-      style: 'mapbox://styles/mapbox/light-v11',
+      style: 'mapbox://styles/mapbox/streets-v12',
       center: [25.5, 58.6],
       zoom: 6.6,
     });
@@ -516,7 +516,7 @@
     $('#map-panel-detail').hidden = false;
     $('#mp-maakond').textContent = (p.MAAKOND || '') + ' maakond';
     $('#mp-nimi').textContent = p.NIMI + ' kihelkond';
-    $('#mp-kubermang').textContent = 'Kubermang: ' + (p.KUBERMANG || 'puudub');
+    $('#mp-kubermang').textContent = '';
 
     const cont = $('#mp-olendid');
     cont.innerHTML = '<p style="color:var(--ink-soft)">Laen olendeid…</p>';
