@@ -386,12 +386,17 @@ body::before {
 @keyframes toast-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 
 /* ============================ V1 — HOME LAYOUT ============================ */
-#view-home { display: flex; flex-direction: column; }
+#view-home {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - var(--nav-h));
+}
 
 .home-layout {
   display: flex;
-  height: calc(100vh - var(--nav-h) - 195px);
-  min-height: 380px;
+  flex: 1;
+  min-height: 400px;
+  overflow: hidden;
 }
 
 .sfaar-sidebar {
@@ -502,7 +507,7 @@ body::before {
   .page-head h1 { font-size: 34px; }
   .tutvustus-card { padding: 30px 22px; }
   .section { padding: 36px 18px; }
-  .home-layout { height: 55vh; min-height: 300px; }
+  .home-layout { min-height: 300px; }
   .sfaar-sidebar { width: 160px; }
   .sfaar-item-name { font-size: 13px; }
 }
