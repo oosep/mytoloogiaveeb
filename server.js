@@ -97,6 +97,7 @@ const DB_PATH      = process.env.DB_PATH      || path.join(__dirname, 'mytoloogi
 const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN || '';
 
 const app = express();
+app.set('trust proxy', 1); // Railway (ja teised reverse proxy-d) seab X-Forwarded-For
 app.use(express.json({ limit: '5mb' }));
 app.use(cookieParser());
 

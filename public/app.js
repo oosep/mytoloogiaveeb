@@ -908,12 +908,6 @@
       location.hash = '#/olendid' + (q ? '?otsing=' + encodeURIComponent(q) : '');
     });
 
-    // Otsing nav-link fookustab otsinguvälja
-    $('#nav-otsing').addEventListener('click', (e) => {
-      e.preventDefault();
-      const inp = $('#navbar-search-input');
-      if (inp) { inp.focus(); } else { location.hash = '#/olendid'; }
-    });
 
     // Olendite filtrid (live)
     let timer;
