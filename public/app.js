@@ -199,6 +199,7 @@
   async function renderHome() {
     // Sfäärid sidebar
     const list = $('#sfaar-list');
+    if (!list) return;
     list.innerHTML = state.sfaarid.map((s) => `
       <div class="sfaar-item" data-sfaar="${esc(s)}">
         <div class="sfaar-item-icon" style="background:${SFAAR_COLORS[s] || '#555'}">
