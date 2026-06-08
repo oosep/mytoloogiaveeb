@@ -26,6 +26,28 @@
     'Muud': '✶',
   };
 
+  const SFAAR_COLORS = {
+    'Mets': '#2e7d32',
+    'Vesi': '#1565c0',
+    'Kodu': '#e65100',
+    'Ilm': '#388e3c',
+    'Kivid ja koopad': '#5d4037',
+    'Põrgu': '#6a1b9a',
+    'Muud': '#37474f',
+  };
+
+  const SFAAR_SVG = {
+    'Mets': '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="12" width="4" height="10" rx="1"/><rect x="10" y="5" width="4" height="17" rx="1"/><rect x="18" y="8" width="4" height="14" rx="1"/></svg>',
+    'Vesi': '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.8 8.2 8 8.2s8-3.22 8-8.2c0-3.32-2.67-7.25-8-11.8z"/></svg>',
+    'Kodu': '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>',
+    'Ilm': '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 0 0 8 20C19 20 22 3 22 3c-1 2-8 2-8 2z"/></svg>',
+    'Kivid ja koopad': '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2c0-3.31 2.69-6 6-6s6 2.69 6 6v2"/></svg>',
+    'Põrgu': '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c4.97 0 9-4.03 9-9-5 0-9 4-9 9zm0 0c-4.97 0-9-4.03-9-9 5 0 9 4 9 9zm0-12c0-3-2-5.5-4-7 0 3 1 5 4 7zm0 0c0-3 2-5.5 4-7 0 3-1 5-4 7z"/></svg>',
+    'Muud': '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+  };
+
+  const MOUNTAIN_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="38" height="38"><path d="m3 20 5-8 4 5 3-4 6 7H3z"/><circle cx="17" cy="7" r="2" fill="currentColor" stroke="none" opacity=".4"/></svg>`;
+
   // --- Olek ----------------------------------------------------------------
   const state = {
     kasutaja: null,        // { id, kasutajanimi, email, roll }
@@ -34,6 +56,7 @@
     geojson: null,
     map: null,
     mapInited: false,
+    homeMap: null,
     lemmikIds: new Set(),
   };
 
@@ -174,38 +197,103 @@
   //  V1 — AVALEHT
   // =========================================================================
   async function renderHome() {
-    // Sfäärid
-    const grid = $('#sfaar-grid');
-    let loendurid = {};
-    try {
-      const d = await api('/olendid');
-      d.olendid.forEach((o) => { loendurid[o.sfaar] = (loendurid[o.sfaar] || 0) + 1; });
-    } catch (_) {}
-    grid.innerHTML = state.sfaarid
-      .map((s) => `
-        <div class="sfaar-card" data-sfaar="${esc(s)}">
-          <div class="sfaar-icon">${SFAAR_IKOONID[s] || '✶'}</div>
-          <h3>${esc(s)}</h3>
-          <div class="sfaar-count">${loendurid[s] || 0} olendit</div>
-        </div>`)
-      .join('');
-    $$('.sfaar-card', grid).forEach((c) =>
-      c.addEventListener('click', () => {
-        location.hash = '#/olendid?sfaar=' + encodeURIComponent(c.dataset.sfaar);
+    // Sfäärid sidebar
+    const list = $('#sfaar-list');
+    list.innerHTML = state.sfaarid.map((s) => `
+      <div class="sfaar-item" data-sfaar="${esc(s)}">
+        <div class="sfaar-item-icon" style="background:${SFAAR_COLORS[s] || '#555'}">
+          ${SFAAR_SVG[s] || ''}
+        </div>
+        <span class="sfaar-item-name">${esc(s)}</span>
+      </div>`).join('');
+    $$('.sfaar-item', list).forEach((item) =>
+      item.addEventListener('click', () => {
+        location.hash = '#/olendid?sfaar=' + encodeURIComponent(item.dataset.sfaar);
       })
     );
 
-    // Esiletõstetud olendid (kuni 4 avaldatud)
-    const esile = $('#esile-grid');
+    // Kaart
+    initHomeMap();
+
+    // Viimati lisatud olendid (kuni 5)
+    const grid = $('#viimati-grid');
     try {
       const d = await api('/olendid');
-      const valik = d.olendid.filter((o) => o.staatus === 'avaldatud').slice(0, 4);
-      esile.innerHTML = valik.map(olendKaartHTML).join('') ||
-        '<p class="empty-msg">Avaldatud olendeid pole veel.</p>';
-      seoOlendKaardid(esile);
+      const valik = d.olendid.filter((o) => o.staatus === 'avaldatud').slice(0, 5);
+      if (!valik.length) {
+        grid.innerHTML = '<p class="empty-msg">Avaldatud olendeid pole veel.</p>';
+        return;
+      }
+      grid.innerHTML = valik.map((o) => `
+        <div class="viimati-card" data-id="${o.id}">
+          <div class="viimati-card-img">
+            ${o.pilt_url
+              ? `<img src="${esc(o.pilt_url)}" alt="${esc(o.nimi)}" onerror="this.parentElement.innerHTML='${MOUNTAIN_SVG}'">`
+              : MOUNTAIN_SVG}
+          </div>
+          <div class="viimati-card-body">
+            <h3>${esc(o.nimi)}</h3>
+            <p>${esc(o.sfaar)}</p>
+          </div>
+        </div>`).join('');
+      $$('.viimati-card', grid).forEach((c) =>
+        c.addEventListener('click', () => { location.hash = '#/olend/' + c.dataset.id; })
+      );
     } catch (_) {
-      esile.innerHTML = '<p class="empty-msg">Olendite laadimine ebaõnnestus.</p>';
+      grid.innerHTML = '<p class="empty-msg">Olendite laadimine ebaõnnestus.</p>';
     }
+  }
+
+  function kihelkondKeskpunkt(feat) {
+    let x = 0, y = 0, n = 0;
+    function addRing(ring) { ring.forEach(([lng, lat]) => { x += lng; y += lat; n++; }); }
+    const geom = feat.geometry;
+    if (geom.type === 'Polygon') geom.coordinates.forEach(addRing);
+    else if (geom.type === 'MultiPolygon') geom.coordinates.forEach((p) => p.forEach(addRing));
+    return n ? [x / n, y / n] : [25.0, 58.7];
+  }
+
+  function initHomeMap() {
+    const el = document.getElementById('home-map');
+    if (!el || !state.geojson || !MAPBOX_TOKEN) return;
+    if (state.homeMap) { setTimeout(() => state.homeMap.resize(), 50); return; }
+
+    mapboxgl.accessToken = MAPBOX_TOKEN;
+    const map = new mapboxgl.Map({
+      container: 'home-map',
+      style: 'mapbox://styles/mapbox/light-v11',
+      center: [25.0, 58.7],
+      zoom: 6.2,
+    });
+    state.homeMap = map;
+
+    map.on('load', async () => {
+      map.resize();
+      map.addSource('kih', { type: 'geojson', data: state.geojson });
+      map.addLayer({
+        id: 'kih-fill', type: 'fill', source: 'kih',
+        paint: { 'fill-color': '#b8d8b0', 'fill-opacity': 0.55 },
+      });
+      map.addLayer({
+        id: 'kih-line', type: 'line', source: 'kih',
+        paint: { 'line-color': '#7aaa70', 'line-width': 0.6 },
+      });
+      try {
+        const d = await api('/olendid');
+        d.olendid
+          .filter((o) => o.staatus === 'avaldatud' && o.asukohad && o.asukohad.length)
+          .forEach((o) => {
+            const feat = state.geojson.features.find((f) => f.properties.NIMI === o.asukohad[0].kihelkond);
+            if (!feat) return;
+            const center = kihelkondKeskpunkt(feat);
+            new mapboxgl.Marker({ color: SFAAR_COLORS[o.sfaar] || '#555', scale: 0.85 })
+              .setLngLat(center)
+              .setPopup(new mapboxgl.Popup({ offset: 25, closeButton: false })
+                .setHTML(`<strong>${esc(o.nimi)}</strong><br><small>${esc(o.sfaar)}</small>`))
+              .addTo(map);
+          });
+      } catch (_) {}
+    });
   }
 
   // --- Olendi kaardi HTML --------------------------------------------------
@@ -812,11 +900,18 @@
     $('#lightbox-close').addEventListener('click', () => { $('#lightbox').hidden = true; });
     $('#lightbox').addEventListener('click', (e) => { if (e.target.id === 'lightbox') $('#lightbox').hidden = true; });
 
-    // Hero otsing
-    $('#hero-search').addEventListener('submit', (e) => {
+    // Navbar otsing
+    $('#navbar-search').addEventListener('submit', (e) => {
       e.preventDefault();
-      const q = $('#hero-search-input').value.trim();
+      const q = $('#navbar-search-input').value.trim();
       location.hash = '#/olendid' + (q ? '?otsing=' + encodeURIComponent(q) : '');
+    });
+
+    // Otsing nav-link fookustab otsinguvälja
+    $('#nav-otsing').addEventListener('click', (e) => {
+      e.preventDefault();
+      const inp = $('#navbar-search-input');
+      if (inp) { inp.focus(); } else { location.hash = '#/olendid'; }
     });
 
     // Olendite filtrid (live)

@@ -22,8 +22,7 @@
   <!-- ================= NAVIGATSIOONIRIBA ================= -->
   <header class="navbar" id="navbar">
     <a href="#/" class="brand" data-nav>
-      <span class="brand-mark">ᛗ</span>
-      <span class="brand-text">Mütoloogia<em>veeb</em></span>
+      <span class="brand-text">LOGO</span>
     </a>
 
     <button class="nav-toggle" id="nav-toggle" aria-label="Menüü">
@@ -32,77 +31,49 @@
 
     <nav class="nav-links" id="nav-links">
       <a href="#/" data-nav>Avaleht</a>
-      <a href="#/olendid" data-nav>Olendid</a>
+      <a href="#/olendid" data-nav>Sfäärid</a>
       <a href="#/kaart" data-nav>Kaart</a>
+      <a href="#/olendid" data-nav id="nav-otsing">Otsing</a>
+      <a href="#/" data-nav id="nav-lisainfo">Lisainfo</a>
       <a href="#/lisa" data-nav data-roll="toimetaja,admin">Lisa olend</a>
       <a href="#/admin" data-nav data-roll="admin">Haldus</a>
-
-      <div class="nav-auth" id="nav-auth">
-        <!-- Täidetakse JS-iga: sisselogimise nupp VÕI kasutajamenüü -->
-      </div>
+      <div class="nav-auth" id="nav-auth"></div>
     </nav>
+
+    <form class="navbar-search" id="navbar-search" autocomplete="off">
+      <input type="search" id="navbar-search-input" placeholder="Otsi..." aria-label="Otsi" />
+      <button type="submit" class="navbar-search-btn" aria-label="Otsi">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="16" height="16"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </button>
+    </form>
+    <button class="lang-btn" type="button">ET &#9662;</button>
   </header>
 
   <!-- ================= VAATED (V1–V6) ================= -->
   <main id="app">
 
     <!-- V1 — AVALEHT -->
-    <section class="view" id="view-home" hidden>
-      <div class="hero">
-        <div class="hero-bg" aria-hidden="true"></div>
-        <div class="hero-inner">
-          <p class="hero-eyebrow">Eesti rahvapärimuse digitaalne arhiiv</p>
-          <h1 class="hero-title">Olendid, kes elavad<br /><em>meie maa lugudes</em></h1>
-          <p class="hero-lead">
-            Avasta näkke, kratte ja metsavaime — Eesti mütoloogilised olendid
-            koondatud sfääride kaupa ning seotud 1917. aasta kihelkondade kaartiga.
-          </p>
-          <form class="hero-search" id="hero-search" autocomplete="off">
-            <input type="search" id="hero-search-input" placeholder="Otsi olendit, nt „Näkk“…" aria-label="Otsi olendit" />
-            <button type="submit">Otsi</button>
-          </form>
-          <div class="hero-cta">
-            <a href="#/kaart" data-nav class="btn btn-primary">Ava kaart →</a>
-            <a href="#/olendid" data-nav class="btn btn-ghost">Sirvi olendeid</a>
-          </div>
+    <section class=”view” id=”view-home” hidden>
+      <div class=”home-layout”>
+        <aside class=”sfaar-sidebar”>
+          <h2 class=”sfaar-sidebar-title”>SFÄÄRID</h2>
+          <div id=”sfaar-list”><!-- JS --></div>
+        </aside>
+        <div class=”home-map-area”>
+          <div id=”home-map”></div>
         </div>
       </div>
 
-      <section class="section section-sfaarid">
-        <header class="section-head">
-          <h2>Mütoloogilised sfäärid</h2>
-          <p>Iga olend kuulub ühte seitsmest pärimuse maailmast.</p>
-        </header>
-        <div class="sfaar-grid" id="sfaar-grid"><!-- JS --></div>
-      </section>
-
-      <section class="section section-esile">
-        <header class="section-head">
-          <h2>Esile tõstetud olendid</h2>
-          <p>Tuntuimad tegelased Eesti rahvajuttudest.</p>
-        </header>
-        <div class="esile-grid" id="esile-grid"><!-- JS --></div>
-      </section>
-
-      <section class="section section-tutvustus">
-        <div class="tutvustus-card">
-          <h2>Miks see arhiiv?</h2>
-          <p>
-            Eesti mütoloogiline pärimus on sajandite jooksul kandunud suust suhu —
-            näkk veekogus, kratt rehetoas, metsaema puude vahel. See infosüsteem
-            koondab lood ühte kohta ja seob need geograafiliselt 1917. aasta
-            kihelkondade piiridega, et pärimust saaks uurida nii teema kui ka
-            paikkonna järgi.
-          </p>
-          <p>
-            Toimetajad saavad lisada uut sisu, mis läheb enne avaldamist
-            modereerimisele — nii püsib arhiiv usaldusväärsena.
-          </p>
+      <section class=”viimati-section”>
+        <div class=”viimati-header”>
+          <h2 class=”viimati-title”>Viimati lisatud olendid</h2>
+          <a href=”#/olendid” data-nav class=”vaata-koiki”>Vaata kõiki &rarr;</a>
         </div>
+        <div class=”viimati-grid” id=”viimati-grid”><!-- JS --></div>
       </section>
 
-      <footer class="site-footer">
-        <p>Eesti Mütoloogiaveeb · Tallinna Ülikool · 2026</p>
+      <footer class=”site-footer”>
+        <p>Eesti Mütoloogiaveeb &middot; Tallinna Ülikool &middot; 2026</p>
       </footer>
     </section>
 
