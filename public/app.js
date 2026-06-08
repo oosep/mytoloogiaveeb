@@ -256,7 +256,11 @@
 
   function initHomeMap() {
     const el = document.getElementById('home-map');
-    if (!el || !state.geojson || !MAPBOX_TOKEN) return;
+    if (!el) return;
+    if (!MAPBOX_TOKEN || !state.geojson) {
+      el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#6b7280;font-size:15px;font-family:inherit;background:#f3f4f6;">Kaart pole saadaval</div>';
+      return;
+    }
     if (state.homeMap) { setTimeout(() => state.homeMap.resize(), 50); return; }
 
     mapboxgl.accessToken = MAPBOX_TOKEN;
