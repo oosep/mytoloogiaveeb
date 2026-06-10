@@ -26,6 +26,28 @@
     'Muud': '✶',
   };
 
+  const SFAAR_COLORS = {
+    'Mets': '#2e7d32',
+    'Vesi': '#1565c0',
+    'Kodu': '#e65100',
+    'Ilm': '#388e3c',
+    'Kivid ja koopad': '#5d4037',
+    'Põrgu': '#6a1b9a',
+    'Muud': '#37474f',
+  };
+
+  const SFAAR_SVG = {
+    'Mets': '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="12" width="4" height="10" rx="1"/><rect x="10" y="5" width="4" height="17" rx="1"/><rect x="18" y="8" width="4" height="14" rx="1"/></svg>',
+    'Vesi': '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.8 8.2 8 8.2s8-3.22 8-8.2c0-3.32-2.67-7.25-8-11.8z"/></svg>',
+    'Kodu': '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>',
+    'Ilm': '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 0 0 8 20C19 20 22 3 22 3c-1 2-8 2-8 2z"/></svg>',
+    'Kivid ja koopad': '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2c0-3.31 2.69-6 6-6s6 2.69 6 6v2"/></svg>',
+    'Põrgu': '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c4.97 0 9-4.03 9-9-5 0-9 4-9 9zm0 0c-4.97 0-9-4.03-9-9 5 0 9 4 9 9zm0-12c0-3-2-5.5-4-7 0 3 1 5 4 7zm0 0c0-3 2-5.5 4-7 0 3-1 5-4 7z"/></svg>',
+    'Muud': '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+  };
+
+  const MOUNTAIN_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="38" height="38"><path d="m3 20 5-8 4 5 3-4 6 7H3z"/><circle cx="17" cy="7" r="2" fill="currentColor" stroke="none" opacity=".4"/></svg>`;
+
   // --- Olek ----------------------------------------------------------------
   const state = {
     kasutaja: null,        // { id, kasutajanimi, email, roll }
@@ -34,6 +56,7 @@
     geojson: null,
     map: null,
     mapInited: false,
+    homeMap: null,
     lemmikIds: new Set(),
   };
 
@@ -157,6 +180,12 @@
     try {
       const cfg = await api('/config');
       MAPBOX_TOKEN = cfg.mapboxToken || '';
+      state.turnstileSiteKey = cfg.turnstileSiteKey || '';
+      // Sea CAPTCHA widgeti sitekey, kui see on serveris seadistatud
+      const tEl = document.getElementById('reg-turnstile');
+      if (tEl && state.turnstileSiteKey) {
+        tEl.setAttribute('data-sitekey', state.turnstileSiteKey);
+      }
     } catch (_) { /* kasutab tühja stringi, kaart näitab Mapboxi veateadet */ }
     try {
       const res = await fetch('kihelkond_1917.geojson');
@@ -174,38 +203,108 @@
   //  V1 — AVALEHT
   // =========================================================================
   async function renderHome() {
-    // Sfäärid
-    const grid = $('#sfaar-grid');
-    let loendurid = {};
-    try {
-      const d = await api('/olendid');
-      d.olendid.forEach((o) => { loendurid[o.sfaar] = (loendurid[o.sfaar] || 0) + 1; });
-    } catch (_) {}
-    grid.innerHTML = state.sfaarid
-      .map((s) => `
-        <div class="sfaar-card" data-sfaar="${esc(s)}">
-          <div class="sfaar-icon">${SFAAR_IKOONID[s] || '✶'}</div>
-          <h3>${esc(s)}</h3>
-          <div class="sfaar-count">${loendurid[s] || 0} olendit</div>
-        </div>`)
-      .join('');
-    $$('.sfaar-card', grid).forEach((c) =>
-      c.addEventListener('click', () => {
-        location.hash = '#/olendid?sfaar=' + encodeURIComponent(c.dataset.sfaar);
+    // Sfäärid sidebar
+    const list = $('#sfaar-list');
+    if (!list) return;
+    list.innerHTML = state.sfaarid.map((s) => `
+      <div class="sfaar-item" data-sfaar="${esc(s)}">
+        <div class="sfaar-item-icon" style="background:${SFAAR_COLORS[s] || '#555'}">
+          ${SFAAR_SVG[s] || ''}
+        </div>
+        <span class="sfaar-item-name">${esc(s)}</span>
+      </div>`).join('');
+    $$('.sfaar-item', list).forEach((item) =>
+      item.addEventListener('click', () => {
+        location.hash = '#/olendid?sfaar=' + encodeURIComponent(item.dataset.sfaar);
       })
     );
 
-    // Esiletõstetud olendid (kuni 4 avaldatud)
-    const esile = $('#esile-grid');
+    // Kaart
+    initHomeMap();
+
+    // Viimati lisatud olendid (kuni 5)
+    const grid = $('#viimati-grid');
     try {
       const d = await api('/olendid');
-      const valik = d.olendid.filter((o) => o.staatus === 'avaldatud').slice(0, 4);
-      esile.innerHTML = valik.map(olendKaartHTML).join('') ||
-        '<p class="empty-msg">Avaldatud olendeid pole veel.</p>';
-      seoOlendKaardid(esile);
+      const valik = d.olendid.filter((o) => o.staatus === 'avaldatud').slice(0, 5);
+      if (!valik.length) {
+        grid.innerHTML = '<p class="empty-msg">Avaldatud olendeid pole veel.</p>';
+        return;
+      }
+      grid.innerHTML = valik.map((o) => `
+        <div class="viimati-card" data-id="${o.id}">
+          <div class="viimati-card-img">
+            ${o.pilt_url
+              ? `<img src="${esc(o.pilt_url)}" alt="${esc(o.nimi)}" onerror="this.parentElement.innerHTML='${MOUNTAIN_SVG}'">`
+              : MOUNTAIN_SVG}
+          </div>
+          <div class="viimati-card-body">
+            <h3>${esc(o.nimi)}</h3>
+            <p>${esc(o.sfaar)}</p>
+          </div>
+        </div>`).join('');
+      $$('.viimati-card', grid).forEach((c) =>
+        c.addEventListener('click', () => { location.hash = '#/olend/' + c.dataset.id; })
+      );
     } catch (_) {
-      esile.innerHTML = '<p class="empty-msg">Olendite laadimine ebaõnnestus.</p>';
+      grid.innerHTML = '<p class="empty-msg">Olendite laadimine ebaõnnestus.</p>';
     }
+  }
+
+  function kihelkondKeskpunkt(feat) {
+    let x = 0, y = 0, n = 0;
+    function addRing(ring) { ring.forEach(([lng, lat]) => { x += lng; y += lat; n++; }); }
+    const geom = feat.geometry;
+    if (geom.type === 'Polygon') geom.coordinates.forEach(addRing);
+    else if (geom.type === 'MultiPolygon') geom.coordinates.forEach((p) => p.forEach(addRing));
+    return n ? [x / n, y / n] : [25.0, 58.7];
+  }
+
+  function initHomeMap() {
+    const el = document.getElementById('home-map');
+    if (!el) return;
+    if (!MAPBOX_TOKEN || !state.geojson) {
+      el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#6b7280;font-size:15px;font-family:inherit;background:#f3f4f6;">Kaart pole saadaval</div>';
+      return;
+    }
+    if (state.homeMap) { setTimeout(() => state.homeMap.resize(), 50); return; }
+
+    mapboxgl.accessToken = MAPBOX_TOKEN;
+    const map = new mapboxgl.Map({
+      container: 'home-map',
+      style: 'mapbox://styles/mapbox/light-v11',
+      center: [25.0, 58.7],
+      zoom: 6.2,
+    });
+    state.homeMap = map;
+
+    map.on('load', async () => {
+      map.resize();
+      map.addSource('kih', { type: 'geojson', data: state.geojson });
+      map.addLayer({
+        id: 'kih-fill', type: 'fill', source: 'kih',
+        paint: { 'fill-color': '#b8d8b0', 'fill-opacity': 0.55 },
+      });
+      map.addLayer({
+        id: 'kih-line', type: 'line', source: 'kih',
+        paint: { 'line-color': '#7aaa70', 'line-width': 0.6 },
+      });
+      try {
+        const d = await api('/olendid');
+        d.olendid
+          .filter((o) => o.staatus === 'avaldatud' && o.asukohad && o.asukohad.length)
+          .forEach((o) => {
+            const feat = state.geojson.features.find((f) => f.properties.NIMI === o.asukohad[0].kihelkond);
+            if (!feat) return;
+            const center = kihelkondKeskpunkt(feat);
+            new mapboxgl.Marker({ color: SFAAR_COLORS[o.sfaar] || '#555', scale: 0.85 })
+              .setLngLat(center)
+              .setPopup(new mapboxgl.Popup({ offset: 25, closeButton: false })
+                .setHTML(`<strong>${esc(o.nimi)}</strong><br><small>${esc(o.sfaar)}</small>`))
+              .addTo(map);
+          });
+      } catch (_) {}
+    });
   }
 
   // --- Olendi kaardi HTML --------------------------------------------------
@@ -700,8 +799,142 @@
   }
 
   // =========================================================================
-  //  MARSRUUTER
+  //  V7 / V8 — JURIIDILISED LEHED (privaatsuspoliitika, kasutustingimused)
   // =========================================================================
+  const LEGAL_UPDATED = '10.06.2026';
+
+  const LEGAL_SISU = {
+    privaatsus: `
+      <p class="legal-meta">Viimati uuendatud: ${LEGAL_UPDATED}</p>
+
+      <p>Käesolev privaatsuspoliitika selgitab, kuidas Eesti Mütoloogiaveeb
+      (edaspidi „veeb") kogub, kasutab ja kaitseb sinu isikuandmeid kooskõlas
+      Euroopa Liidu isikuandmete kaitse üldmäärusega (GDPR) ja Eesti
+      isikuandmete kaitse seadusega.</p>
+
+      <h2>1. Vastutav töötleja</h2>
+      <p>Veebi haldab Tallinna Ülikooli õppeprojekti meeskond hariduslikul
+      eesmärgil. Andmekaitse küsimustes saab ühendust võtta aadressil
+      <a href="mailto:privaatsus@mytoloogia.ee">privaatsus@mytoloogia.ee</a>.</p>
+
+      <h2>2. Milliseid andmeid kogutakse</h2>
+      <ul>
+        <li><b>Konto andmed:</b> kasutajanimi, e-posti aadress ja paroolist
+        loodud krüptograafiline räsi (parooli ennast ei säilitata kunagi avatekstina).</li>
+        <li><b>Sisu:</b> sinu lisatud mütoloogiakirjed, lemmikud ja kommentaarid.</li>
+        <li><b>Tehnilised logid:</b> IP-aadress ja toimingute aeg turvalisuse
+        tagamiseks (brute-force-kaitse, auditijälg). Logisid säilitatakse piiratud aja.</li>
+      </ul>
+
+      <h2>3. Andmetöötluse õiguslik alus</h2>
+      <p>Konto loomine ja sisu haldamine põhineb sinu <b>nõusolekul</b> (GDPR art 6 lg 1 p a)
+      ning teenuse osutamise <b>lepingul</b> (p b). Turvalogide töötlemine põhineb veebi
+      <b>õigustatud huvil</b> (p f) kaitsta süsteemi väärkasutuse eest.</p>
+
+      <h2>4. Küpsised</h2>
+      <p>Veeb kasutab ühte tehniliselt vajalikku küpsist (<code>token</code>)
+      sisselogitud sessiooni hoidmiseks. See on <code>httpOnly</code> ja
+      <code>SameSite=Strict</code>, ei sisalda jälgimisandmeid ega lähe
+      kolmandatele osapooltele. Keelevalik salvestatakse samuti küpsisesse.
+      Turundus- ega analüütikaküpsiseid ei kasutata.</p>
+
+      <h2>5. Andmete jagamine</h2>
+      <p>Isikuandmeid <b>ei müüda ega jagata</b> kolmandate osapooltega
+      turunduslikul eesmärgil. Tehnilisteks teenusteks kasutatakse:
+      kaardikihtide kuvamiseks Mapbox (sinu IP edastatakse kaardipiltide
+      laadimisel), bottide tõkestamiseks Cloudflare Turnstile ning teenuse
+      majutamiseks Railway. Iga teenus töötleb andmeid oma privaatsustingimuste alusel.</p>
+
+      <h2>6. Säilitamine ja kustutamine</h2>
+      <p>Konto andmeid säilitatakse seni, kuni konto on aktiivne. Konto
+      kustutamisel eemaldatakse isikuandmed <b>30 päeva jooksul</b>. Sinu
+      lisatud avalik sisu võidakse säilitada anonümiseeritult.</p>
+
+      <h2>7. Sinu õigused (GDPR)</h2>
+      <ul>
+        <li>õigus tutvuda enda andmetega ja saada neist koopia;</li>
+        <li>õigus andmete parandamisele ja kustutamisele („õigus olla unustatud");</li>
+        <li>õigus töötlemise piiramisele ja vastuväite esitamisele;</li>
+        <li>õigus võtta nõusolek igal ajal tagasi;</li>
+        <li>õigus pöörduda <a href="https://www.aki.ee" target="_blank" rel="noopener">Andmekaitse Inspektsiooni</a> poole.</li>
+      </ul>
+
+      <h2>8. Turvalisus</h2>
+      <p>Paroolid räsitakse bcrypt-algoritmiga, ühendus on krüpteeritud (HTTPS),
+      rakendatud on sisselogimiskatsete piiramine, sisendi valideerimine ning
+      turvalised HTTP-päised. Vaatamata meetmetele ei saa ükski süsteem tagada
+      100% turvalisust.</p>
+
+      <h2>9. Muudatused</h2>
+      <p>Poliitika uuendamisel muudetakse käesoleva lehe kuupäeva. Olulistest
+      muudatustest teavitatakse registreeritud kasutajaid.</p>
+
+      <p class="legal-foot">Vaata ka <a href="#/tingimused" data-nav>kasutustingimusi</a>.</p>
+    `,
+    tingimused: `
+      <p class="legal-meta">Viimati uuendatud: ${LEGAL_UPDATED}</p>
+
+      <p>Eesti Mütoloogiaveebi (edaspidi „veeb") kasutamisega nõustud
+      järgnevate tingimustega. Kui sa nendega ei nõustu, palun ära veebi kasuta.</p>
+
+      <h2>1. Teenuse kirjeldus</h2>
+      <p>Veeb on hariduslik ja kultuuriline infosüsteem Eesti mütoloogilise
+      pärimuse kohta. Teenust pakutakse „nagu on" põhimõttel, peamiselt
+      õppe-eesmärgil, ilma kättesaadavuse garantiita.</p>
+
+      <h2>2. Konto ja kasutaja kohustused</h2>
+      <ul>
+        <li>esita registreerimisel tõene info ning hoia oma parool turvaliselt;</li>
+        <li>vastutad kõigi oma kontolt tehtud toimingute eest;</li>
+        <li>oled vähemalt 13-aastane või kasutad veebi seadusliku esindaja loal.</li>
+      </ul>
+
+      <h2>3. Lubatud kasutus</h2>
+      <p>Veebi tohib kasutada seaduslikel eesmärkidel. Keelatud on:</p>
+      <ul>
+        <li>vale, eksitava või solvava sisu lisamine;</li>
+        <li>teiste autoriõiguste rikkumine;</li>
+        <li>süsteemi turvalisuse rikkumine, automatiseeritud kraapimine või
+        ülekoormamine (sh bottidega);</li>
+        <li>teiste kasutajate isikuandmete väärkasutus.</li>
+      </ul>
+
+      <h2>4. Kasutaja loodud sisu</h2>
+      <p>Sina säilitad õigused enda lisatud sisule, kuid annad veebile
+      lihtlitsentsi seda õppe-eesmärgil kuvada ja säilitada. Toimetajad võivad
+      sisu modereerida, muuta või eemaldada, kui see rikub neid tingimusi.
+      Lisatud sisu peab olema korrektselt allikaviidatud.</p>
+
+      <h2>5. Rollid ja modereerimine</h2>
+      <p>Uued kasutajad saavad külastaja õigused. Sisu lisamise (toimetaja) ja
+      halduse (administraator) õigusi annab veebi haldaja. Lisatud kirjed
+      läbivad enne avaldamist modereerimise.</p>
+
+      <h2>6. Intellektuaalomand</h2>
+      <p>Veebi tarkvara on avatud lähtekoodiga (MIT litsents). Mütoloogiline
+      pärimusmaterjal pärineb avalikest allikatest ja on viidatud vastavalt.</p>
+
+      <h2>7. Vastutuse piiramine</h2>
+      <p>Veebi haldaja ei vastuta sisu täielikkuse ega täpsuse eest ega
+      kahjude eest, mis tulenevad veebi kasutamisest. Tegemist on
+      õppeprojektiga, mitte teadusliku autoriteetallikaga.</p>
+
+      <h2>8. Tingimuste muutmine ja lõpetamine</h2>
+      <p>Haldajal on õigus tingimusi muuta ja konto, mis rikub tingimusi,
+      peatada või kustutada. Tingimuste tõlgendamisel kohaldatakse Eesti
+      Vabariigi õigust.</p>
+
+      <p class="legal-foot">Vaata ka <a href="#/privaatsus" data-nav>privaatsuspoliitikat</a>.</p>
+    `,
+  };
+
+  function renderLegal(milline) {
+    const sisu = LEGAL_SISU[milline] || LEGAL_SISU.privaatsus;
+    const el = document.getElementById('legal-' + milline);
+    if (el) el.innerHTML = sisu;
+  }
+
+
   const vaated = {
     '': 'view-home',
     'olendid': 'view-olendid',
@@ -711,6 +944,9 @@
     'profiil': 'view-profiil',
     'lisa': 'view-vorm',
     'muuda': 'view-vorm',
+    'privaatsus': 'view-privaatsus',
+    'tingimused': 'view-tingimused',
+    'info': 'view-privaatsus',
   };
 
   function parsiHash() {
@@ -749,6 +985,8 @@
       case 'profiil': await renderProfiil(); break;
       case 'lisa': await renderVorm(null); break;
       case 'muuda': await renderVorm(id); break;
+      case 'privaatsus': case 'info': renderLegal('privaatsus'); break;
+      case 'tingimused': renderLegal('tingimused'); break;
       default: location.hash = '#/';
     }
   }
@@ -790,6 +1028,13 @@
 
     $('#form-register').addEventListener('submit', async (e) => {
       e.preventDefault();
+      // Loe Turnstile token peidetud väljalt (widget lisab selle ise)
+      const captchaToken = (window.turnstile && document.querySelector('#reg-turnstile input[name="cf-turnstile-response"]'))
+        ? document.querySelector('#reg-turnstile input[name="cf-turnstile-response"]').value
+        : '';
+      if (!$('#reg-nousolek').checked) {
+        return authViga('Pead nõustuma privaatsuspoliitika ja kasutustingimustega.');
+      }
       try {
         const d = await api('/auth/register', {
           method: 'POST',
@@ -797,6 +1042,8 @@
             kasutajanimi: $('#reg-kasutajanimi').value.trim(),
             email: $('#reg-email').value.trim(),
             parool: $('#reg-parool').value,
+            nousolek: $('#reg-nousolek').checked,
+            captchaToken,
           },
         });
         state.kasutaja = d.kasutaja;
@@ -805,19 +1052,23 @@
         suljeAuthModal();
         toast('Konto loodud! Oled sisse logitud.');
         router();
-      } catch (err) { authViga(err.message); }
+      } catch (err) {
+        if (window.turnstile) window.turnstile.reset('#reg-turnstile'); // lähtesta widget
+        authViga(err.message);
+      }
     });
 
     // Lightbox sulgemine
     $('#lightbox-close').addEventListener('click', () => { $('#lightbox').hidden = true; });
     $('#lightbox').addEventListener('click', (e) => { if (e.target.id === 'lightbox') $('#lightbox').hidden = true; });
 
-    // Hero otsing
-    $('#hero-search').addEventListener('submit', (e) => {
+    // Navbar otsing
+    $('#navbar-search').addEventListener('submit', (e) => {
       e.preventDefault();
-      const q = $('#hero-search-input').value.trim();
+      const q = $('#navbar-search-input').value.trim();
       location.hash = '#/olendid' + (q ? '?otsing=' + encodeURIComponent(q) : '');
     });
+
 
     // Olendite filtrid (live)
     let timer;

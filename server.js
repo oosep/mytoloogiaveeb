@@ -24,6 +24,7 @@ const cookieParser = require('cookie-parser');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
+const turve = require('./turve');
 
 /*
  * Andmebaasi draiver.
@@ -90,15 +91,35 @@ try { require('dotenv').config(); } catch (_) { /* dotenv pole kohustuslik */ }
 
 const PORT         = process.env.PORT         || 3000;
 const JWT_SECRET   = process.env.JWT_SECRET   || 'mytoloogiaveeb-arenduse-saladus-muuda-toodangus';
+const ON_TOODANG   = process.env.NODE_ENV === 'production';
 if (JWT_SECRET === 'mytoloogiaveeb-arenduse-saladus-muuda-toodangus') {
+  if (ON_TOODANG) {
+    // Tootmises EI tohi vaikeväärtusega käivituda — see oleks kriitiline turvaauk
+    console.error('\n❌  KRIITILINE: JWT_SECRET on seadmata tootmises. Server ei käivitu.\n');
+    process.exit(1);
+  }
   console.warn('\n⚠️  HOIATUS: JWT_SECRET on vaikeväärtus! Sea .env failis oma tugev saladus.\n');
+}
+if (ON_TOODANG && JWT_SECRET.length < 32) {
+  console.error('\n❌  KRIITILINE: JWT_SECRET peab olema vähemalt 32 tähemärki. Server ei käivitu.\n');
+  process.exit(1);
 }
 const DB_PATH      = process.env.DB_PATH      || path.join(__dirname, 'mytoloogia.db');
 const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN || '';
 
 const app = express();
-app.use(express.json({ limit: '5mb' }));
+app.set('trust proxy', 1); // Railway (ja teised reverse proxy-d) seab X-Forwarded-For
+app.use(turve.turvapaised);            // turvalised HTTP-päised igale vastusele
+app.use(express.json({ limit: '1mb' })); // 5mb -> 1mb: väiksem DoS-pind
 app.use(cookieParser());
+
+// Küpsise valikud — `secure` ainult HTTPS-i all (Railway), arenduses localhostis mitte
+const COOKIE_OPTS = {
+  httpOnly: true,
+  sameSite: 'strict',
+  secure: ON_TOODANG,
+  maxAge: 7 * 864e5,
+};
 
 // --- Turvalisus: rate limiting --------------------------------------------
 
@@ -132,10 +153,29 @@ app.use('/api/', (req, res, next) => {
   // GET ja HEAD on ohutud (ei muuda andmeid)
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
   const origin = req.headers.origin || req.headers.referer || '';
-  // Luba localhost arenduses alati
-  if (!origin || origin.includes('localhost') || origin.includes('127.0.0.1')) return next();
-  // Toodangus: kontrolli lubatud originide nimekirja
-  if (LUBATUD_ORIGINID.length > 0 && !LUBATUD_ORIGINID.some(o => origin.startsWith(o))) {
+
+  // Arenduses (mitte tootmises) luba localhost / tühi Origin (nt curl, Postman).
+  if (!ON_TOODANG) {
+    if (!origin) return next();
+    try {
+      const host = new URL(origin).hostname;
+      if (host === 'localhost' || host === '127.0.0.1') return next();
+    } catch (_) { return next(); } // parsimatu Origin arenduses -> luba
+  }
+
+  // Tootmises: Origin PEAB olema olemas ja lubatud nimekirjas (mitte ainult startsWith).
+  if (ON_TOODANG && LUBATUD_ORIGINID.length === 0) {
+    console.warn('⚠️  LUBATUD_ORIGINID on seadmata — kõik muutvad päringud blokeeritakse.');
+  }
+  let lubatud = false;
+  try {
+    const host = origin ? new URL(origin).hostname : '';
+    lubatud = LUBATUD_ORIGINID.some((o) => {
+      try { return new URL(o).hostname === host; } catch { return false; }
+    });
+  } catch (_) { lubatud = false; }
+
+  if (!lubatud) {
     return res.status(403).json({ viga: 'Keelatud päritolu.' });
   }
   next();
@@ -441,46 +481,84 @@ function olendTaielik(row) {
 // --- Autentimine ----------------------------------------------------------
 
 // Registreerimine
-app.post('/api/auth/register', authLimiter, (req, res) => {
-  const { kasutajanimi, email, parool } = req.body || {};
+app.post('/api/auth/register', authLimiter, async (req, res) => {
+  const { kasutajanimi, email, parool, nousolek, captchaToken } = req.body || {};
+
+  // 1) CAPTCHA — alati nõutav registreerimisel (bottide tõkestamine)
+  const captchaOk = await turve.verifyTurnstile(captchaToken, req.ip);
+  if (!captchaOk) {
+    return res.status(400).json({ viga: 'CAPTCHA kontroll ebaõnnestus. Proovi uuesti.' });
+  }
+
+  // 2) GDPR — nõusolek privaatsuspoliitika ja tingimustega on kohustuslik
+  if (nousolek !== true) {
+    return res.status(400).json({ viga: 'Pead nõustuma privaatsuspoliitika ja kasutustingimustega.' });
+  }
+
   if (!kasutajanimi || !email || !parool) {
     return res.status(400).json({ viga: 'Kasutajanimi, email ja parool on kohustuslikud.' });
   }
-  if (parool.length < 6) {
-    return res.status(400).json({ viga: 'Parool peab olema vähemalt 6 tähemärki.' });
+  // 3) Tugevam sisendi valideerimine
+  if (kasutajanimi.trim().length < 3 || kasutajanimi.trim().length > 50) {
+    return res.status(400).json({ viga: 'Kasutajanimi peab olema 3–50 tähemärki.' });
   }
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    return res.status(400).json({ viga: 'E-posti aadress on vigane.' });
+  }
+  if (parool.length < 8) {
+    return res.status(400).json({ viga: 'Parool peab olema vähemalt 8 tähemärki.' });
+  }
+
   const olemas = db
     .prepare('SELECT id FROM kasutajad WHERE kasutajanimi = ? OR email = ?')
     .get(kasutajanimi, email);
   if (olemas) {
     return res.status(409).json({ viga: 'Selline kasutajanimi või email on juba kasutusel.' });
   }
-  const hash = bcrypt.hashSync(parool, 10);
-  // Uued kasutajad on vaikimisi toimetajad (saavad sisu lisada modereerimisele).
-  // Soovi korral muuda 'kasutaja' rolliks puhta külastaja jaoks.
+  const hash = bcrypt.hashSync(parool, 12); // 10 -> 12: tugevam räsi
+  // Avalik registreerimine annab AINULT 'kasutaja' rolli (külastaja).
+  // Toimetaja/admin õigused annab admin käsitsi — väldib õiguste eskalatsiooni.
   const info = db
     .prepare('INSERT INTO kasutajad (kasutajanimi, email, parool, roll) VALUES (?, ?, ?, ?)')
-    .run(kasutajanimi, email, hash, 'toimetaja');
+    .run(kasutajanimi.trim(), email.trim().toLowerCase(), hash, 'kasutaja');
   const user = db.prepare('SELECT * FROM kasutajad WHERE id = ?').get(info.lastInsertRowid);
+  auditLog(user, 'REGISTREERIMINE', { id: user.id });
   const token = signToken(user);
-  res.cookie('token', token, { httpOnly: true, sameSite: 'strict', maxAge: 7 * 864e5 });
+  res.cookie('token', token, COOKIE_OPTS);
   res.json({ token, kasutaja: { id: user.id, kasutajanimi: user.kasutajanimi, email: user.email, roll: user.roll } });
 });
 
+// Kas sisselogimisel on vaja CAPTCHA-t? (frontend küsib seda enne vormi näitamist)
+app.post('/api/auth/login-check', (req, res) => {
+  res.json({ vajabCaptchat: turve.vajabCaptchat(req), lavi: turve.CAPTCHA_LAVI });
+});
+
 // Sisselogimine
-app.post('/api/auth/login', authLimiter, (req, res) => {
-  const { kasutajanimi, parool } = req.body || {};
+app.post('/api/auth/login', authLimiter, async (req, res) => {
+  const { kasutajanimi, parool, captchaToken } = req.body || {};
   if (!kasutajanimi || !parool) {
     return res.status(400).json({ viga: 'Kasutajanimi ja parool on kohustuslikud.' });
   }
+
+  // CAPTCHA AINULT siis, kui sellelt kasutajalt/IP-lt on olnud mitu ebaõnnestumist
+  if (turve.vajabCaptchat(req)) {
+    const ok = await turve.verifyTurnstile(captchaToken, req.ip);
+    if (!ok) {
+      return res.status(400).json({ viga: 'CAPTCHA kontroll on nõutav.', vajabCaptchat: true });
+    }
+  }
+
   const user = db
     .prepare('SELECT * FROM kasutajad WHERE kasutajanimi = ? OR email = ?')
     .get(kasutajanimi, kasutajanimi);
   if (!user || !bcrypt.compareSync(parool, user.parool)) {
-    return res.status(401).json({ viga: 'Vale kasutajanimi või parool.' });
+    turve.markEbaonnestumine(req); // suurenda loendurit
+    auditLog(null, 'SISSELOGIMINE_EBAONNESTUS', { kasutajanimi, ip: req.ip });
+    return res.status(401).json({ viga: 'Vale kasutajanimi või parool.', vajabCaptchat: turve.vajabCaptchat(req) });
   }
+  turve.nullistaKatsed(req); // edukas login nullib loenduri
   const token = signToken(user);
-  res.cookie('token', token, { httpOnly: true, sameSite: 'strict', maxAge: 7 * 864e5 });
+  res.cookie('token', token, COOKIE_OPTS);
   res.json({ token, kasutaja: { id: user.id, kasutajanimi: user.kasutajanimi, email: user.email, roll: user.roll } });
 });
 
@@ -692,7 +770,10 @@ app.get('/api/sfaarid', (req, res) => {
 // Avalik konfiguratsioon — tagastab ainult need võtmed, mida frontend vajab.
 // Mapboxi võti loetakse keskkonnamuutujast, mitte koodist.
 app.get('/api/config', (req, res) => {
-  res.json({ mapboxToken: MAPBOX_TOKEN });
+  res.json({
+    mapboxToken: MAPBOX_TOKEN,
+    turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || '',
+  });
 });
 
 // --- Staatilised failid (frontend) ----------------------------------------
