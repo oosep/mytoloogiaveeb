@@ -9,6 +9,9 @@ node_modules/
 *.db-shm
 *.db-wal
 
+# Üleslaaditud failid — EI lähe kunagi GitHubi
+uploads/
+
 # Logid
 *.log
 npm-debug.log*

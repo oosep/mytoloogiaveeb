@@ -67,6 +67,13 @@
     String(s == null ? '' : s).replace(/[&<>"']/g, (c) =>
       ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
     );
+  // Lubab linkides AINULT http(s) ja suhtelisi URL-e — javascript: jms ei pääse läbi
+  const turvalineUrl = (u) => {
+    try {
+      const p = new URL(String(u), location.origin).protocol;
+      return p === 'https:' || p === 'http:' ? String(u) : null;
+    } catch (_) { return null; }
+  };
 
   // --- API abifunktsioon ---------------------------------------------------
   async function api(path, opts = {}) {
@@ -410,7 +417,10 @@
 
     const allikad = (o.allikad || []).length
       ? `<div class="detail-block"><h3>Allikad</h3><ul class="detail-sources">${o.allikad
-          .map((a) => `<li>${a.url ? `<a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.viide)}</a>` : esc(a.viide)}</li>`)
+          .map((a) => {
+            const url = a.url && turvalineUrl(a.url); // XSS-kaitse: ainult http(s) lingid
+            return `<li>${url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(a.viide)}</a>` : esc(a.viide)}</li>`;
+          })
           .join('')}</ul></div>`
       : '';
 
@@ -775,6 +785,10 @@
     // Lähtesta
     $('#olend-vorm').reset();
     $('#vorm-id').value = '';
+    $('#vorm-pilt').value = '';
+    $('#vorm-heli').value = '';
+    näitaOlemasolevManus('pilt', null);
+    näitaOlemasolevManus('heli', null);
     $('#asukoht-list').innerHTML = '';
     $('#viide-list').innerHTML = '';
     $('#vorm-teade').textContent = '';
@@ -791,11 +805,86 @@
         $('#vorm-kirjeldus').value = o.kirjeldus || '';
         $('#vorm-pilt').value = o.pilt_url || '';
         $('#vorm-heli').value = o.heli_url || '';
+        näitaOlemasolevManus('pilt', o.pilt_url);
+        näitaOlemasolevManus('heli', o.heli_url);
         (o.asukohad || []).forEach((a) => $('#asukoht-list').insertAdjacentHTML('beforeend', asukohaReaHTML(a)));
         (o.allikad || []).forEach((s) => $('#viide-list').insertAdjacentHTML('beforeend', viiteReaHTML(s)));
         seoRmNupud();
       } catch (e) { toast(e.message, 'err'); }
     }
+  }
+
+  // --- Failide üleslaadimine (turvaline API /api/failid) --------------------
+  // NB: siin EI kasutata api() abifunktsiooni, sest FormData puhul peab brauser
+  // ise multipart Content-Type'i (koos boundary'ga) seadma.
+  async function laeFailYles(fail, liik) {
+    const fd = new FormData();
+    fd.append('liik', liik);
+    fd.append('fail', fail, fail.name);
+    const res = await fetch('/api/failid', { method: 'POST', body: fd, credentials: 'same-origin' });
+    let data = {};
+    try { data = await res.json(); } catch (_) {}
+    if (!res.ok) throw new Error(data.viga || 'Üleslaadimine ebaõnnestus (' + res.status + ')');
+    return data.fail;
+  }
+
+  /** Kuvab manuse infoploki koos "Eemalda" nupuga (DOM API, mitte innerHTML). */
+  function näitaManusInfo(liik, tekst) {
+    const info = $('#vorm-' + liik + '-info');
+    info.hidden = false;
+    info.textContent = '';
+    const span = document.createElement('span');
+    span.textContent = tekst;
+    const eemalda = document.createElement('button');
+    eemalda.type = 'button';
+    eemalda.className = 'btn-small';
+    eemalda.textContent = 'Eemalda';
+    eemalda.addEventListener('click', () => {
+      $('#vorm-' + liik).value = '';
+      $('#vorm-' + liik + '-fail').value = '';
+      info.hidden = true;
+      info.textContent = '';
+    });
+    info.append(span, ' ', eemalda);
+  }
+
+  function näitaOlemasolevManus(liik, url) {
+    const info = $('#vorm-' + liik + '-info');
+    info.hidden = true;
+    info.textContent = '';
+    if (url) näitaManusInfo(liik, liik === 'pilt' ? '✓ Pilt on salvestatud.' : '✓ Helifail on salvestatud.');
+  }
+
+  /** Seob failisisendi: valikul laaditakse fail kohe üles ja viide salvub peitväljale. */
+  function seoFailiSisend(liik) {
+    const sisend = $('#vorm-' + liik + '-fail');
+    const info = $('#vorm-' + liik + '-info');
+    const maxMB = liik === 'pilt' ? 5 : 20;
+    sisend.addEventListener('change', async () => {
+      const fail = sisend.files && sisend.files[0];
+      if (!fail) return;
+      if (fail.size > maxMB * 1024 * 1024) {
+        toast('Fail on liiga suur (max ' + maxMB + ' MB).', 'err');
+        sisend.value = '';
+        return;
+      }
+      info.hidden = false;
+      info.textContent = 'Laen üles: ' + fail.name + '…';
+      sisend.disabled = true;
+      try {
+        const f = await laeFailYles(fail, liik);
+        $('#vorm-' + liik).value = f.url;
+        näitaManusInfo(liik, '✓ ' + f.originaalnimi + ' (' + Math.max(1, Math.round(f.suurus / 1024)) + ' kB)');
+        toast('Fail üles laaditud.');
+      } catch (e) {
+        info.hidden = true;
+        info.textContent = '';
+        sisend.value = '';
+        toast(e.message, 'err');
+      } finally {
+        sisend.disabled = false;
+      }
+    });
   }
 
   // =========================================================================
@@ -1078,6 +1167,10 @@
     ['#f-sfaar', '#f-kihelkond', '#f-sort'].forEach((sel) =>
       $(sel).addEventListener('change', laeOlendiNimekiri)
     );
+
+    // Vorm: failide üleslaadimine
+    seoFailiSisend('pilt');
+    seoFailiSisend('heli');
 
     // Vorm: dünaamilised read
     $('#lisa-asukoht').addEventListener('click', () => {

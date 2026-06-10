@@ -68,6 +68,39 @@ CREATE TABLE IF NOT EXISTS lemmikud (
   FOREIGN KEY (olend_id) REFERENCES olendid(id) ON DELETE CASCADE
 );
 
+-- --- Manused (üleslaaditud pildid ja helifailid) ---------------------------
+-- Failid ise asuvad väljaspool veebijuurikat kaustas uploads/<id>.bin;
+-- siin hoitakse AINULT metaandmeid. Serveeritakse läbi GET /api/failid/:id.
+CREATE TABLE IF NOT EXISTS manused (
+  id            TEXT PRIMARY KEY,                    -- 32 hex märki (crypto.randomBytes)
+  liik          TEXT NOT NULL,                       -- pilt | heli
+  mime          TEXT NOT NULL,                       -- sisu järgi tuvastatud MIME
+  laiend        TEXT NOT NULL,                       -- jpg | png | webp | mp3 | wav | m4a | ogg
+  originaalnimi TEXT NOT NULL,                       -- puhastatud algne failinimi
+  suurus        INTEGER NOT NULL,                    -- baitides
+  sha256        TEXT NOT NULL,                       -- sisu räsi (duplikaadid, terviklus)
+  laius         INTEGER,                             -- pildi laius px
+  korgus        INTEGER,                             -- pildi kõrgus px
+  kestus_s      REAL,                                -- heli kestus sekundites
+  krypteeritud  INTEGER NOT NULL DEFAULT 0,          -- 1 = AES-256-GCM kettal
+  omanik_id     INTEGER NOT NULL,                    -- üleslaadija
+  olend_id      INTEGER,                             -- seotud olend (kui on)
+  loodud_at     TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (omanik_id) REFERENCES kasutajad(id) ON DELETE CASCADE,
+  FOREIGN KEY (olend_id) REFERENCES olendid(id) ON DELETE SET NULL
+);
+
+-- --- Auditilogi (püsiv, andmebaasis) ---------------------------------------
+CREATE TABLE IF NOT EXISTS audit_logi (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  kasutaja_id   INTEGER,                             -- NULL = anonüümne
+  kasutajanimi  TEXT,
+  tegevus       TEXT NOT NULL,                       -- nt FAIL_ULES, SISSELOGIMINE_EBAONNESTUS
+  yksikasjad    TEXT,                                -- JSON
+  ip            TEXT,
+  loodud_at     TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 -- ===========================================================================
 --  MÄRKUS TESTANDMETE KOHTA
 --  ---------------------------------------------------------------------------

@@ -19,12 +19,15 @@
 
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
+const multer = require('multer');
 const turve = require('./turve');
+const failid = require('./failid');
 
 /*
  * Andmebaasi draiver.
@@ -107,6 +110,14 @@ if (ON_TOODANG && JWT_SECRET.length < 32) {
 const DB_PATH      = process.env.DB_PATH      || path.join(__dirname, 'mytoloogia.db');
 const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN || '';
 
+// Manuste kaust — VÄLJASPOOL veebijuurikat (/public). Faile ei serveerita
+// kunagi otse kettalt, vaid ainult läbi kontrollitud API marsruudi.
+const MANUSTE_KAUST = process.env.MANUSTE_KAUST || path.join(__dirname, 'uploads');
+fs.mkdirSync(MANUSTE_KAUST, { recursive: true });
+if (ON_TOODANG && !process.env.MANUSTE_VOTI) {
+  console.warn('⚠️  MANUSTE_VOTI on seadmata — üleslaaditud faile EI krüpteerita kettal.');
+}
+
 const app = express();
 app.set('trust proxy', 1); // Railway (ja teised reverse proxy-d) seab X-Forwarded-For
 app.use(turve.turvapaised);            // turvalised HTTP-päised igale vastusele
@@ -140,6 +151,15 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
   message: { viga: 'Liiga palju sisselogimiskatseid, proovi 15 minuti pärast uuesti.' },
   skipSuccessfulRequests: true, // edukaid päringuid ei loeta
+});
+
+// Eraldi piirmäär failide üleslaadimisele (DoS-kaitse: suured kehad on kallid)
+const uploadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutit
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { viga: 'Liiga palju üleslaadimisi, proovi hiljem uuesti.' },
 });
 
 app.use('/api/', apiLimiter);
@@ -184,22 +204,69 @@ app.use('/api/', (req, res, next) => {
 // --- Sisendi valideerimise abifunktsioonid --------------------------------
 const LUBATUD_SFAARID = ['Mets', 'Vesi', 'Kodu', 'Ilm', 'Kivid ja koopad', 'Põrgu', 'Muud'];
 
+// Sisemise manuse viite muster: /api/failid/<32 hex>
+const MANUSE_VIITE_RE = /^\/api\/failid\/([a-f0-9]{32})$/;
+
+/**
+ * Kas meedia-URL on lubatud? Lubatud on AINULT:
+ *   1) sisemine manuse viide /api/failid/<id> (uus üleslaadimissüsteem)
+ *   2) absoluutne http(s) URL (pärand-kirjed; javascript:/data: jms keelatud)
+ */
+function lubatudUrl(u, lubaSisemine) {
+  if (typeof u !== 'string' || u.length > 1000) return false;
+  if (lubaSisemine && MANUSE_VIITE_RE.test(u)) return true;
+  try {
+    const p = new URL(u).protocol;
+    return p === 'https:' || p === 'http:';
+  } catch (_) { return false; }
+}
+
 function valideeriOlend(body) {
   const vead = [];
   if (!body.nimi || !body.nimi.trim()) vead.push('Olendi nimi on kohustuslik.');
   if (body.nimi && body.nimi.trim().length > 200) vead.push('Nimi on liiga pikk (max 200 tähemärki).');
   if (body.sfaar && !LUBATUD_SFAARID.includes(body.sfaar)) vead.push('Tundmatu sfäär.');
   if (body.kirjeldus && body.kirjeldus.length > 50000) vead.push('Kirjeldus on liiga pikk.');
-  if (body.pilt_url && body.pilt_url.length > 1000) vead.push('Pildi URL on liiga pikk.');
-  if (body.heli_url && body.heli_url.length > 1000) vead.push('Heli URL on liiga pikk.');
+  if (body.pilt_url && !lubatudUrl(body.pilt_url, true)) vead.push('Pildi URL pole lubatud (kasuta üleslaadimist või https-aadressi).');
+  if (body.heli_url && !lubatudUrl(body.heli_url, true)) vead.push('Heli URL pole lubatud (kasuta üleslaadimist või https-aadressi).');
+  for (const a of Array.isArray(body.allikad) ? body.allikad : []) {
+    if (a && a.viide && String(a.viide).length > 500) vead.push('Allika viide on liiga pikk.');
+    if (a && a.url && !lubatudUrl(a.url, false)) vead.push('Allika URL peab olema http(s)-aadress.');
+  }
   return vead;
 }
 
+/**
+ * Kontrollib sisemist manuse viidet enne olendiga sidumist:
+ * manus peab olemas olema, olema õiget liiki ning kuuluma kasutajale
+ * (admin võib siduda kõiki). Tagastab { id } või { viga }.
+ */
+function kontrolliManuseViide(url, liik, user) {
+  if (!url) return { id: null };
+  const m = MANUSE_VIITE_RE.exec(url);
+  if (!m) return { id: null }; // väline https URL (pärand) — pole midagi siduda
+  const rida = db.prepare('SELECT id, liik, omanik_id FROM manused WHERE id = ?').get(m[1]);
+  if (!rida) return { viga: 'Viidatud üleslaaditud faili ei leitud.' };
+  if (rida.liik !== liik) return { viga: 'Viidatud fail on vale tüüpi.' };
+  if (user.roll !== 'admin' && rida.omanik_id !== user.id) {
+    return { viga: 'Saad kasutada ainult enda üleslaaditud faile.' };
+  }
+  return { id: rida.id };
+}
+
 // --- Audit log ------------------------------------------------------------
-function auditLog(kasutaja, tegevus, üksikasjad) {
+// Kirjutatakse NII konsooli KUI ka andmebaasi (audit_logi tabel) — püsiv jälg.
+function auditLog(kasutaja, tegevus, üksikasjad, ip) {
   const kellaaeg = new Date().toISOString();
   const kasutajaInfo = kasutaja ? (kasutaja.kasutajanimi + '(roll:' + kasutaja.roll + ')') : 'anonüüm';
   console.log('[AUDIT] ' + kellaaeg + ' | ' + kasutajaInfo + ' | ' + tegevus + ' | ' + JSON.stringify(üksikasjad));
+  try {
+    db.prepare('INSERT INTO audit_logi (kasutaja_id, kasutajanimi, tegevus, yksikasjad, ip) VALUES (?, ?, ?, ?, ?)')
+      .run(kasutaja ? kasutaja.id : null, kasutaja ? kasutaja.kasutajanimi : null,
+           tegevus, JSON.stringify(üksikasjad || {}), ip || null);
+  } catch (e) {
+    console.error('[AUDIT] andmebaasi kirje ebaõnnestus:', e.message);
+  }
 }
 
 // --- Andmebaasi ühendus ja initsialiseerimine -----------------------------
@@ -282,6 +349,35 @@ CREATE TABLE IF NOT EXISTS lemmikud (
   FOREIGN KEY (kasutaja_id) REFERENCES kasutajad(id) ON DELETE CASCADE,
   FOREIGN KEY (olend_id) REFERENCES olendid(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS manused (
+  id            TEXT PRIMARY KEY,
+  liik          TEXT NOT NULL,
+  mime          TEXT NOT NULL,
+  laiend        TEXT NOT NULL,
+  originaalnimi TEXT NOT NULL,
+  suurus        INTEGER NOT NULL,
+  sha256        TEXT NOT NULL,
+  laius         INTEGER,
+  korgus        INTEGER,
+  kestus_s      REAL,
+  krypteeritud  INTEGER NOT NULL DEFAULT 0,
+  omanik_id     INTEGER NOT NULL,
+  olend_id      INTEGER,
+  loodud_at     TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (omanik_id) REFERENCES kasutajad(id) ON DELETE CASCADE,
+  FOREIGN KEY (olend_id) REFERENCES olendid(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS audit_logi (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  kasutaja_id   INTEGER,
+  kasutajanimi  TEXT,
+  tegevus       TEXT NOT NULL,
+  yksikasjad    TEXT,
+  ip            TEXT,
+  loodud_at     TEXT NOT NULL DEFAULT (datetime('now'))
+);
 `;
 
 // --- Testandmete külvamine ------------------------------------------------
@@ -291,16 +387,31 @@ function seedData() {
     const insertUser = db.prepare(
       'INSERT INTO kasutajad (kasutajanimi, email, parool, roll) VALUES (?, ?, ?, ?)'
     );
-    const hash = (pw) => bcrypt.hashSync(pw, 10);
-    insertUser.run('admin', 'admin@mytoloogia.ee', hash('admin123'), 'admin');
-    insertUser.run('toimetaja', 'toimetaja@mytoloogia.ee', hash('toimetaja123'), 'toimetaja');
-    insertUser.run('kylastaja', 'kylastaja@mytoloogia.ee', hash('kylastaja123'), 'kasutaja');
-    console.log('✓ Testkasutajad loodud (admin/admin123, toimetaja/toimetaja123, kylastaja/kylastaja123)');
+    if (ON_TOODANG) {
+      // TOOTMISES EI LOODA KUNAGI vaikeparoolidega kasutajaid (kriitiline turvaauk).
+      // Esmane admin luuakse ainult ADMIN_PAROOL keskkonnamuutujast (min 12 märki).
+      const parool = process.env.ADMIN_PAROOL || '';
+      if (parool.length >= 12) {
+        insertUser.run('admin', process.env.ADMIN_EMAIL || 'admin@mytoloogia.ee',
+          bcrypt.hashSync(parool, 12), 'admin');
+        console.log('✓ Admin-kasutaja loodud ADMIN_PAROOL keskkonnamuutuja põhjal.');
+      } else {
+        console.warn('⚠️  Kasutajaid ei loodud. Sea ADMIN_PAROOL (min 12 märki) esmase admini loomiseks.');
+      }
+    } else {
+      const hash = (pw) => bcrypt.hashSync(pw, 10);
+      insertUser.run('admin', 'admin@mytoloogia.ee', hash('admin123'), 'admin');
+      insertUser.run('toimetaja', 'toimetaja@mytoloogia.ee', hash('toimetaja123'), 'toimetaja');
+      insertUser.run('kylastaja', 'kylastaja@mytoloogia.ee', hash('kylastaja123'), 'kasutaja');
+      console.log('✓ Testkasutajad loodud (admin/admin123, toimetaja/toimetaja123, kylastaja/kylastaja123) — AINULT arenduses');
+    }
   }
 
   const olendCount = db.prepare('SELECT COUNT(*) AS c FROM olendid').get().c;
   if (olendCount === 0) {
-    const adminId = db.prepare("SELECT id FROM kasutajad WHERE kasutajanimi='admin'").get().id;
+    const adminRida = db.prepare("SELECT id FROM kasutajad WHERE kasutajanimi='admin'").get();
+    if (!adminRida) return; // tootmises ilma ADMIN_PAROOL-ita pole autorit — ei külva
+    const adminId = adminRida.id;
     const insertOlend = db.prepare(`
       INSERT INTO olendid (nimi, kirjeldus, sfaar, staatus, pilt_url, heli_url, autor_id)
       VALUES (@nimi, @kirjeldus, @sfaar, @staatus, @pilt_url, @heli_url, @autor_id)
@@ -626,6 +737,12 @@ app.post('/api/olendid', authRequired, rollRequired('toimetaja', 'admin'), (req,
   const valVead = valideeriOlend(req.body || {});
   if (valVead.length) return res.status(400).json({ viga: valVead.join(' ') });
 
+  // Sisemised manuse viited: fail peab eksisteerima ja kuuluma kasutajale
+  const piltViide = kontrolliManuseViide(pilt_url, 'pilt', req.user);
+  if (piltViide.viga) return res.status(400).json({ viga: piltViide.viga });
+  const heliViide = kontrolliManuseViide(heli_url, 'heli', req.user);
+  if (heliViide.viga) return res.status(400).json({ viga: heliViide.viga });
+
   // Toimetaja sisu läheb modereerimisele; admini sisu avaldatakse kohe.
   const staatus = req.user.roll === 'admin' ? 'avaldatud' : 'modereerimisel';
 
@@ -635,6 +752,8 @@ app.post('/api/olendid', authRequired, rollRequired('toimetaja', 'admin'), (req,
                 VALUES (?, ?, ?, ?, ?, ?, ?)`)
       .run(nimi.trim(), kirjeldus || '', sfaar || 'Muud', staatus, pilt_url || null, heli_url || null, req.user.id);
     const oid = info.lastInsertRowid;
+    if (piltViide.id) db.prepare('UPDATE manused SET olend_id = ? WHERE id = ?').run(oid, piltViide.id);
+    if (heliViide.id) db.prepare('UPDATE manused SET olend_id = ? WHERE id = ?').run(oid, heliViide.id);
     (asukohad || []).forEach((a) => {
       if (a && a.kihelkond) {
         db.prepare('INSERT INTO olendi_asukohad (olend_id, kihelkond, maakond) VALUES (?, ?, ?)')
@@ -663,7 +782,32 @@ app.put('/api/olendid/:id', authRequired, rollRequired('toimetaja', 'admin'), (r
   }
   const { nimi, kirjeldus, sfaar, pilt_url, heli_url, asukohad, allikad } = req.body || {};
 
+  // Valideeri LÕPLIKKE väärtusi (muutmata väljad võetakse olemasolevast kirjest)
+  const efektiivne = {
+    nimi: nimi != null ? nimi : row.nimi,
+    kirjeldus: kirjeldus != null ? kirjeldus : row.kirjeldus,
+    sfaar: sfaar != null ? sfaar : row.sfaar,
+    pilt_url: pilt_url !== undefined ? (pilt_url || null) : row.pilt_url,
+    heli_url: heli_url !== undefined ? (heli_url || null) : row.heli_url,
+    allikad,
+  };
+  const valVead = valideeriOlend(efektiivne);
+  if (valVead.length) return res.status(400).json({ viga: valVead.join(' ') });
+
+  // Uue manuse viite korral kontrolli olemasolu + omandiõigust ja seo olendiga
+  let piltViide = { id: null }, heliViide = { id: null };
+  if (efektiivne.pilt_url !== row.pilt_url) {
+    piltViide = kontrolliManuseViide(efektiivne.pilt_url, 'pilt', req.user);
+    if (piltViide.viga) return res.status(400).json({ viga: piltViide.viga });
+  }
+  if (efektiivne.heli_url !== row.heli_url) {
+    heliViide = kontrolliManuseViide(efektiivne.heli_url, 'heli', req.user);
+    if (heliViide.viga) return res.status(400).json({ viga: heliViide.viga });
+  }
+
   const tx = db.transaction(() => {
+    if (piltViide.id) db.prepare('UPDATE manused SET olend_id = ? WHERE id = ?').run(req.params.id, piltViide.id);
+    if (heliViide.id) db.prepare('UPDATE manused SET olend_id = ? WHERE id = ?').run(req.params.id, heliViide.id);
     db.prepare(`UPDATE olendid SET nimi=?, kirjeldus=?, sfaar=?, pilt_url=?, heli_url=?, muudetud_at=datetime('now') WHERE id=?`)
       .run(
         nimi != null ? nimi : row.nimi,
@@ -760,6 +904,134 @@ app.delete('/api/lemmikud/:id', authRequired, (req, res) => {
   res.json({ ok: true });
 });
 
+// --- Failide üleslaadimine (manused) ----------------------------------------
+//
+// Turvamudel:
+//   * Üleslaadimine: ainult sisselogitud toimetaja/admin, eraldi rate-limit.
+//   * Valideerimine: tüüp tuvastatakse SISU järgi (magic bytes), mitte laiendi
+//     ega kliendi Content-Type'i järgi; suurus-, mõõtme- ja kestusepiirangud.
+//   * Hoiustamine: juhuslik 32-hex nimi + ".bin" kaustas väljaspool /public,
+//     valikuline AES-256-GCM krüpteerimine (MANUSTE_VOTI).
+//   * Serveerimine: ainult läbi GET /api/failid/:id, range ID-kontroll
+//     (path traversal võimatu), nosniff + sandbox-CSP päised.
+
+// Multer hoiab faili mälus (max 20 MB) — me EI kirjuta kettale enne valideerimist.
+const ülesLaadija = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: failid.PIIRID.HELI_MAX_BAIT, files: 1, fields: 5, parts: 10 },
+});
+
+// Üleslaadimine
+app.post('/api/failid', uploadLimiter, authRequired, rollRequired('toimetaja', 'admin'), (req, res) => {
+  ülesLaadija.single('fail')(req, res, (err) => {
+    if (err) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(413).json({ viga: 'Fail on liiga suur (max 20 MB).' });
+      }
+      return res.status(400).json({ viga: 'Faili vastuvõtt ebaõnnestus.' });
+    }
+    if (!req.file || !req.file.buffer) {
+      return res.status(400).json({ viga: 'Fail puudub (välja nimi peab olema "fail").' });
+    }
+
+    // Oodatav liik vormilt ('pilt' | 'heli') — lõplik otsus tehakse sisu järgi
+    const oodatudLiik = ['pilt', 'heli'].includes(req.body.liik) ? req.body.liik : null;
+    const v = failid.valideeriFail(req.file.buffer, oodatudLiik);
+    if (!v.ok) {
+      auditLog(req.user, 'FAIL_TAGASI_LYKATUD', { nimi: req.file.originalname, viga: v.viga }, req.ip);
+      return res.status(422).json({ viga: v.viga });
+    }
+
+    const id = failid.genereeriId();
+    const sha256 = crypto.createHash('sha256').update(req.file.buffer).digest('hex');
+    const originaalnimi = failid.puhastaFailinimi(req.file.originalname);
+
+    let krypteeritud = 0;
+    try {
+      krypteeritud = failid.salvestaFail(MANUSTE_KAUST, id, req.file.buffer).krypteeritud;
+    } catch (e) {
+      console.error('[FAILID] salvestamine ebaõnnestus:', e.message);
+      return res.status(500).json({ viga: 'Faili salvestamine ebaõnnestus.' });
+    }
+    try {
+      db.prepare(`INSERT INTO manused (id, liik, mime, laiend, originaalnimi, suurus, sha256,
+                                       laius, korgus, kestus_s, krypteeritud, omanik_id)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+        .run(id, v.liik, v.mime, v.laiend, originaalnimi, req.file.buffer.length, sha256,
+             v.laius || null, v.korgus || null, v.kestus_s || null, krypteeritud, req.user.id);
+    } catch (e) {
+      failid.kustutaFail(MANUSTE_KAUST, id); // ära jäta orbfaili kettale
+      console.error('[FAILID] metaandmete kirjutamine ebaõnnestus:', e.message);
+      return res.status(500).json({ viga: 'Faili salvestamine ebaõnnestus.' });
+    }
+
+    auditLog(req.user, 'FAIL_ULES', { id, liik: v.liik, mime: v.mime, suurus: req.file.buffer.length, nimi: originaalnimi }, req.ip);
+    res.status(201).json({
+      fail: {
+        id, url: '/api/failid/' + id, liik: v.liik, mime: v.mime,
+        originaalnimi, suurus: req.file.buffer.length,
+        laius: v.laius || null, korgus: v.korgus || null, kestus_s: v.kestus_s || null,
+      },
+    });
+  });
+});
+
+// Serveerimine — AINUS viis üleslaaditud faili kätte saada.
+// Avalik, kui fail on seotud avaldatud olendiga; muidu omanik/toimetaja/admin.
+app.get('/api/failid/:id', (req, res) => {
+  const id = req.params.id;
+  if (!failid.onTurvalineId(id)) return res.status(404).json({ viga: 'Faili ei leitud.' });
+  const rida = db.prepare('SELECT * FROM manused WHERE id = ?').get(id);
+  if (!rida) return res.status(404).json({ viga: 'Faili ei leitud.' });
+
+  let avalik = false;
+  if (rida.olend_id) {
+    const o = db.prepare('SELECT staatus FROM olendid WHERE id = ?').get(rida.olend_id);
+    avalik = !!o && o.staatus === 'avaldatud';
+  }
+  if (!avalik) {
+    // 404 (mitte 403), et mitte paljastada privaatse faili olemasolu
+    const token = readToken(req);
+    let user = null;
+    if (token) { try { user = jwt.verify(token, JWT_SECRET); } catch (_) {} }
+    const lubatud = user && (user.id === rida.omanik_id || ['admin', 'toimetaja'].includes(user.roll));
+    if (!lubatud) return res.status(404).json({ viga: 'Faili ei leitud.' });
+  }
+
+  const sisu = failid.loeFail(MANUSTE_KAUST, id, rida.krypteeritud);
+  if (!sisu) return res.status(410).json({ viga: 'Faili sisu pole saadaval.' });
+
+  // Ranged päised: brauser EI tohi sisu tüüpi ära arvata ega selles skripte käivitada
+  res.setHeader('Content-Type', rida.mime);
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Content-Security-Policy', "default-src 'none'; sandbox");
+  res.setHeader('Content-Disposition', 'inline; filename="' + rida.originaalnimi.replace(/["\r\n]/g, '') + '"');
+  res.setHeader('Cache-Control', avalik ? 'public, max-age=86400' : 'private, no-store');
+  res.send(sisu);
+});
+
+// Kustutamine — omanik või admin. Fail kirjutatakse enne eemaldamist üle.
+app.delete('/api/failid/:id', authRequired, (req, res) => {
+  const id = req.params.id;
+  if (!failid.onTurvalineId(id)) return res.status(404).json({ viga: 'Faili ei leitud.' });
+  const rida = db.prepare('SELECT * FROM manused WHERE id = ?').get(id);
+  if (!rida) return res.status(404).json({ viga: 'Faili ei leitud.' });
+  if (req.user.roll !== 'admin' && rida.omanik_id !== req.user.id) {
+    return res.status(403).json({ viga: 'Saad kustutada ainult enda üleslaaditud faile.' });
+  }
+  const viide = '/api/failid/' + id;
+  const tx = db.transaction(() => {
+    // Eemalda viited olenditelt, et ei jääks katkisi linke
+    db.prepare('UPDATE olendid SET pilt_url = NULL WHERE pilt_url = ?').run(viide);
+    db.prepare('UPDATE olendid SET heli_url = NULL WHERE heli_url = ?').run(viide);
+    db.prepare('DELETE FROM manused WHERE id = ?').run(id);
+  });
+  tx();
+  failid.kustutaFail(MANUSTE_KAUST, id);
+  auditLog(req.user, 'FAIL_KUSTUTATUD', { id, nimi: rida.originaalnimi }, req.ip);
+  res.json({ ok: true });
+});
+
 // --- Sfäärid (staatiline loend) -------------------------------------------
 app.get('/api/sfaarid', (req, res) => {
   res.json({
@@ -792,6 +1064,11 @@ app.use((err, req, res, _next) => {
   res.status(500).json({ viga: 'Serveri sisemine viga. Proovi hiljem uuesti.' });
 });
 
-app.listen(PORT, () => {
-  console.log(`\n🜂  Eesti Mütoloogiaveeb töötab: http://localhost:${PORT}\n`);
-});
+// Testides imporditakse app ilma serverit käivitamata (vt test/ kaust)
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`\n🜂  Eesti Mütoloogiaveeb töötab: http://localhost:${PORT}\n`);
+  });
+}
+
+module.exports = { app, db };

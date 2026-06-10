@@ -357,6 +357,7 @@ body::before {
 .vorm-teade { font-size: 14px; }
 .vorm-teade.ok { color: var(--green); }
 .vorm-teade.err { color: #b3261e; }
+.manus-info { font-size: 14px; color: var(--green-dark); display: flex; align-items: center; gap: 8px; margin: 0; }
 
 /* ============================ MODAAL ============================ */
 .modal { position: fixed; inset: 0; z-index: 2000; display: flex; align-items: center; justify-content: center; }

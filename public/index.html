@@ -176,13 +176,21 @@
           <textarea id="vorm-kirjeldus" rows="6" placeholder="Olendi pärimus, omadused ja lood…"></textarea>
         </label>
 
+        <!-- Failid laaditakse üles turvalise API kaudu (/api/failid);
+             peidetud väljad hoiavad serveri tagastatud sisemist viidet -->
+        <input type="hidden" id="vorm-pilt" />
+        <input type="hidden" id="vorm-heli" />
         <div class="vorm-row">
-          <label>Pildi URL
-            <input type="url" id="vorm-pilt" placeholder="https://…" />
+          <label>Pilt (JPG, PNG või WEBP, max 5 MB)
+            <input type="file" id="vorm-pilt-fail" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
           </label>
-          <label>Heli URL (mp3 / wav)
-            <input type="url" id="vorm-heli" placeholder="https://…" />
+          <label>Heli (MP3, WAV, M4A või OGG, max 20 MB / 10 min)
+            <input type="file" id="vorm-heli-fail" accept=".mp3,.wav,.m4a,.ogg,audio/mpeg,audio/wav,audio/mp4,audio/ogg" />
           </label>
+        </div>
+        <div class="vorm-row">
+          <p class="manus-info" id="vorm-pilt-info" hidden></p>
+          <p class="manus-info" id="vorm-heli-info" hidden></p>
         </div>
 
         <div class="vorm-block">
@@ -242,7 +250,6 @@
           <input type="password" id="login-parool" required />
         </label>
         <button type="submit" class="btn btn-primary">Logi sisse</button>
-        <p class="auth-hint">Proovi: <b>admin / admin123</b></p>
       </form>
 
       <form id="form-register" class="auth-form" hidden>
