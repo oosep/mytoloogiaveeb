@@ -1,150 +1,184 @@
 /* ===========================================================================
    Eesti Mütoloogiaveeb — style.css
-   Rikkalik metsarohelise ja pruuniga naturaalpaleti esteetika.
+   ---------------------------------------------------------------------------
+   DISAINIKEEL: „metsavöö atlas"
+   Tume männiroheline kroom (navbar, sfääripaneel, jalus) raamib
+   pärgamenditoonis sisu nagu vana atlase köide. Pruun on alusmaterjal,
+   roheline on mets, kuld on pärimuse sära. Tunnusmärk: kaheksakand.
+
+   Tüpograafia: Cormorant Garamond (display) + Spectral (body).
+   Värvitokenid on kõik :root'is — ära kirjuta heksasid mujale.
    =========================================================================== */
 
 :root {
-  /* Põhivärvid — pruun/beež/rohelisel baasil */
-  --bg:           #f0ebe0;
+  /* --- Mets (kroom: navbar, külgpaneel, jalus) --- */
+  --pine-deep:    #0f1a12;
+  --pine:         #18271c;
+  --pine-soft:    #223627;
+  --pine-line:    #2f4a36;
+  --pine-ink:     #d9e4d4;   /* hele tekst tumedal */
+  --pine-ink-dim: #8aa68d;
+
+  /* --- Rohelised (sisu aktsendid) --- */
+  --fern:         #2e6b34;
+  --fern-dark:    #1d4a23;
+  --fern-soft:    #9dbd97;
+  --fern-pale:    #e6efe2;
+  --fern-muted:   #5f8260;
+
+  /* --- Pruunid / pärgament (sisu taust) --- */
+  --parchment:    #f0ebe0;
   --surface:      #faf6ef;
-  --surface-2:    #ede5d8;
-  --ink:          #2c1f0e;
-  --ink-soft:     #6b4f2e;
+  --surface-2:    #ece4d4;
+  --ink:          #241d10;
+  --ink-soft:     #5f5138;
   --brown:        #7a5c2e;
   --brown-dark:   #3d2b0e;
-  --gold:         #b8901e;
-  --gold-soft:    #c8b87a;
-  --sand:         #e8dcc8;
-  --line:         #d4c4a8;
+  --line:         #d4c8ad;
   --beige:        #f5ede0;
-  --beige-dark:   #e8d8c0;
   --cream:        #fdf8f0;
 
-  /* Rohelised toonid */
-  --green:        #2e7d32;
-  --green-dark:   #1b5e20;
-  --green-mid:    #4caf50;
-  --green-soft:   #a5c8a0;
-  --green-pale:   #e8f5e9;
-  --green-muted:  #6a9e6a;
+  /* --- Kuld (pärimuse sära, aktiivsed olekud) --- */
+  --gold:         #c19a3d;
+  --gold-bright:  #e2bb5c;
+  --gold-dim:     #8a6f2e;
 
-  /* Punakaspruun aktsentvärv */
-  --rust:         #8b3a1a;
-  --rust-soft:    #d4856a;
+  /* --- Signaalvärvid --- */
+  --rust:         #8a2f1d;
+  --danger:       #a8281c;
+  --danger-bg:    #f6e3e0;
+  --st-avaldatud:     #2e6b34;
+  --st-mustand:       #7d7568;
+  --st-modereerimisel:#c19a3d;
 
-  /* Staatuste värvid */
-  --st-avaldatud:    #2e7d32;
-  --st-mustand:      #757575;
-  --st-modereerimisel:#e6a700;
-
-  /* Kaardi "mitte-Eesti" */
-  --foreign: #fbc02d;
-
-  /* Tüpograafia */
+  /* --- Tüpograafia --- */
   --font-display: 'Cormorant Garamond', Georgia, serif;
   --font-body:    'Spectral', Georgia, serif;
 
-  /* Mõõdud */
+  /* --- Mõõdud --- */
   --nav-h: 64px;
   --radius: 12px;
-  --shadow-soft: 0 8px 32px rgba(30, 60, 30, 0.14);
-  --shadow-card: 0 3px 16px rgba(30, 60, 30, 0.10);
+  --shadow-soft: 0 10px 36px rgba(15, 26, 18, 0.18);
+  --shadow-card: 0 3px 16px rgba(15, 26, 18, 0.10);
   --ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
+/* ============================ BAAS ============================ */
 * { margin: 0; padding: 0; box-sizing: border-box; }
-[hidden] { display: none !important; }
+[hidden] { display: none !important; } /* võidab kõik display-reeglid */
 html { scroll-behavior: smooth; }
 
 body {
   font-family: var(--font-body);
-  background: var(--bg);
+  background: var(--parchment);
   color: var(--ink);
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
 }
 
 img { max-width: 100%; display: block; }
-a { color: var(--green); text-decoration: none; }
+a { color: var(--fern); text-decoration: none; }
 button { font-family: inherit; cursor: pointer; }
 
+/* Nähtav klaviatuurifookus — kuldne rõngas igal interaktiivsel elemendil */
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Pärgamendi õrn tekstuur */
 body::before {
   content: "";
   position: fixed; inset: 0;
   pointer-events: none; z-index: 0;
   background-image:
-    radial-gradient(circle at 15% 25%, rgba(122,92,46,0.08), transparent 40%),
-    radial-gradient(circle at 85% 75%, rgba(184,144,30,0.06), transparent 45%),
-    radial-gradient(circle at 50% 50%, rgba(61,43,14,0.04), transparent 60%);
+    radial-gradient(circle at 15% 25%, rgba(122, 92, 46, 0.07), transparent 40%),
+    radial-gradient(circle at 85% 75%, rgba(46, 107, 52, 0.05), transparent 45%),
+    repeating-linear-gradient(0deg, rgba(61, 43, 14, 0.015) 0 1px, transparent 1px 3px);
 }
 
-/* ============================ NAVBAR ============================ */
+/* ============================ NAVBAR (männikroom) ============================ */
 .navbar {
   position: fixed; top: 0; left: 0; right: 0;
   height: var(--nav-h);
-  display: flex; align-items: center; gap: 20px;
+  display: flex; align-items: center; gap: 22px;
   padding: 0 28px;
-  background: #fff;
-  border-bottom: 1px solid #e5e7eb;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  background: linear-gradient(180deg, var(--pine) 0%, var(--pine-deep) 100%);
+  border-bottom: 1px solid var(--pine-line);
+  box-shadow: 0 2px 14px rgba(15, 26, 18, 0.35);
   z-index: 1000;
 }
-.brand { display: flex; align-items: center; }
-.brand-text { font-family: var(--font-body); font-size: 18px; font-weight: 700; color: #111; letter-spacing: 0; }
+
+.brand { display: flex; align-items: center; gap: 10px; color: var(--pine-ink); }
+.brand-mark {
+  width: 22px; height: 22px; color: var(--gold);
+  transition: transform .6s var(--ease);
+}
+.brand:hover .brand-mark { transform: rotate(45deg); }
+.brand-text {
+  font-family: var(--font-display);
+  font-size: 22px; font-weight: 600; letter-spacing: 0.5px;
+  color: var(--pine-ink);
+}
+.brand-text em { color: var(--gold-bright); font-style: italic; }
 
 .nav-links { display: flex; align-items: center; gap: 22px; }
 .nav-links a[data-nav] {
-  font-size: 15px; color: #444; position: relative;
+  font-size: 15px; color: var(--pine-ink-dim); position: relative;
   padding: 5px 0; transition: color .2s;
 }
 .nav-links a[data-nav]::after {
   content: ""; position: absolute; left: 0; bottom: 0; height: 2px; width: 0;
-  background: #111; transition: width .25s var(--ease);
+  background: var(--gold); transition: width .25s var(--ease);
 }
-.nav-links a[data-nav]:hover { color: #111; }
+.nav-links a[data-nav]:hover { color: var(--pine-ink); }
 .nav-links a[data-nav]:hover::after,
 .nav-links a[data-nav].active::after { width: 100%; }
-.nav-links a[data-nav].active { color: #111; font-weight: 600; }
+.nav-links a[data-nav].active { color: var(--gold-bright); }
 
 .nav-auth { display: flex; align-items: center; gap: 10px; }
 .nav-user { display: flex; align-items: center; gap: 10px; }
-.nav-user .uname { font-family: var(--font-display); font-size: 16px; color: #111; font-weight: 600; }
+.nav-user .uname {
+  font-family: var(--font-display); font-size: 17px;
+  color: var(--pine-ink); font-weight: 600;
+}
 .nav-user .urole {
   font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
-  background: var(--green-pale); color: var(--green-dark); padding: 2px 8px; border-radius: 20px;
-  border: 1px solid var(--green-soft);
+  background: var(--pine-soft); color: var(--gold-bright);
+  padding: 2px 9px; border-radius: 20px;
+  border: 1px solid var(--gold-dim);
 }
-.nav-toggle { display: none; flex-direction: column; gap: 5px; background: none; border: none; padding: 8px; margin-left: auto; }
-.nav-toggle span { width: 26px; height: 2px; background: #333; transition: .3s; }
+.navbar .btn-link { color: var(--pine-ink-dim); }
+.navbar .btn-link:hover { color: var(--pine-ink); }
 
-/* Navbar search + lang */
+.nav-toggle { display: none; flex-direction: column; gap: 5px; background: none; border: none; padding: 8px; margin-left: auto; }
+.nav-toggle span { width: 26px; height: 2px; background: var(--pine-ink); transition: .3s; }
+
+/* Navbari otsing + keelenupp */
 .navbar-search {
   margin-left: auto; display: flex; align-items: center;
-  border: 1.5px solid #d1d5db; border-radius: 8px;
-  background: #f9fafb; overflow: hidden;
+  border: 1px solid var(--pine-line); border-radius: 8px;
+  background: var(--pine-soft); overflow: hidden;
+  transition: border-color .2s;
 }
+.navbar-search:focus-within { border-color: var(--gold); }
 .navbar-search input {
   border: none; background: transparent; padding: 7px 12px;
-  font-family: var(--font-body); font-size: 14px; color: #333;
+  font-family: var(--font-body); font-size: 14px; color: var(--pine-ink);
   outline: none; width: 170px;
 }
-.navbar-search input::placeholder { color: #9ca3af; }
+.navbar-search input::placeholder { color: var(--pine-ink-dim); }
 .navbar-search-btn {
   background: none; border: none; padding: 7px 10px;
-  color: #6b7280; display: flex; align-items: center; cursor: pointer;
+  color: var(--pine-ink-dim); display: flex; align-items: center;
 }
-.navbar-search-btn:hover { color: #111; }
+.navbar-search-btn:hover { color: var(--gold-bright); }
 .lang-btn {
-  flex-shrink: 0; background: none; border: 1.5px solid #d1d5db; border-radius: 6px;
-  padding: 6px 10px; font-size: 14px; font-weight: 500; color: #333; cursor: pointer;
+  flex-shrink: 0; background: none; border: 1px solid var(--pine-line); border-radius: 6px;
+  padding: 6px 10px; font-size: 14px; color: var(--pine-ink-dim);
 }
-.lang-btn:hover { background: #f3f4f6; }
-
-/* Navbar btn overrides for light bg */
-.navbar .btn-primary { background: var(--green); color: #fff; border-color: var(--green); font-size: 14px; padding: 7px 16px; }
-.navbar .btn-ghost { background: none; color: var(--green-dark); border-color: var(--green-soft); font-size: 14px; padding: 7px 16px; }
-.navbar .btn-ghost:hover { background: var(--green-pale); }
-.navbar .btn-link { color: var(--green-dark); }
+.lang-btn:hover { color: var(--pine-ink); border-color: var(--gold-dim); }
 
 /* ============================ NUPUD ============================ */
 .btn {
@@ -152,240 +186,39 @@ body::before {
   font-size: 15px; font-weight: 500; border: 1.5px solid transparent;
   transition: all .25s var(--ease); text-align: center;
 }
-.btn-primary { background: var(--green); color: #fff; border-color: var(--green); }
-.btn-primary:hover { background: var(--green-dark); transform: translateY(-2px); box-shadow: var(--shadow-card); }
-.btn-ghost { background: rgba(255,255,255,0.15); color: #fff; border-color: rgba(255,255,255,0.3); }
-.btn-ghost:hover { background: rgba(255,255,255,0.20); border-color: var(--gold-soft); }
-.btn-small { font-size: 13px; padding: 5px 11px; border-radius: 7px; background: var(--green-pale); color: var(--green-dark); border: 1px solid var(--green-soft); }
-.btn-small:hover { background: var(--sand); }
-.btn-link { background: none; border: none; color: var(--green); text-decoration: underline; font-size: 15px; }
+.btn-primary { background: var(--fern); color: #fff; border-color: var(--fern); }
+.btn-primary:hover { background: var(--fern-dark); transform: translateY(-2px); box-shadow: var(--shadow-card); }
+.btn-ghost { background: transparent; color: var(--fern-dark); border-color: var(--fern-soft); }
+.btn-ghost:hover { background: var(--fern-pale); border-color: var(--fern); }
+.btn-small {
+  font-size: 13px; padding: 5px 11px; border-radius: 7px;
+  background: var(--fern-pale); color: var(--fern-dark); border: 1px solid var(--fern-soft);
+}
+.btn-small:hover { background: var(--surface-2); }
+.btn-link { background: none; border: none; color: var(--fern); text-decoration: underline; font-size: 15px; }
 
 /* ============================ APP / VAATED ============================ */
 #app { position: relative; z-index: 1; padding-top: var(--nav-h); min-height: 100vh; }
 .view { animation: fade-in .4s var(--ease); }
 @keyframes fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
-.page-head { max-width: 1200px; margin: 0 auto; padding: 32px 28px 6px; }
-.page-head h1 { font-family: var(--font-display); font-size: 42px; font-weight: 600; color: var(--green-dark); }
-.page-head p { color: var(--ink-soft); font-size: 17px; }
+/* Lehepea: kuldne eelrida + suur serif + lühike kuldjoon */
+.page-head { max-width: 1200px; margin: 0 auto; padding: 36px 28px 6px; }
+.page-head h1 {
+  font-family: var(--font-display); font-size: clamp(34px, 4.5vw, 46px);
+  font-weight: 600; color: var(--fern-dark); line-height: 1.08;
+}
+.page-head h1::after {
+  content: ""; display: block; width: 64px; height: 3px;
+  margin-top: 10px; background: linear-gradient(90deg, var(--gold), transparent);
+}
+.page-head p { color: var(--ink-soft); font-size: 17px; margin-top: 8px; }
 
-.back-link { margin: 16px 0 0 28px; background: none; border: none; color: var(--green); font-size: 15px; }
-.back-link:hover { color: var(--green-dark); }
+.back-link { margin: 16px 0 0 28px; background: none; border: none; color: var(--fern); font-size: 15px; }
+.back-link:hover { color: var(--fern-dark); }
 .empty-msg { text-align: center; color: var(--ink-soft); font-style: italic; padding: 32px; max-width: 1200px; margin: 0 auto; }
 
-/* ============================ V1 — HERO ============================ */
-.hero {
-  position: relative; min-height: calc(85vh - var(--nav-h));
-  display: flex; align-items: center; overflow: hidden;
-}
-.hero-bg {
-  position: absolute; inset: 0;
-  background:
-    linear-gradient(160deg, rgba(61,43,14,0.92) 0%, rgba(122,92,46,0.80) 40%, rgba(240,235,224,0.95) 100%),
-    repeating-linear-gradient(60deg, rgba(122,92,46,0.05) 0 1px, transparent 1px 28px);
-}
-.hero-inner { position: relative; max-width: 960px; margin: 0 auto; padding: 56px 28px 56px; }
-.hero-eyebrow { text-transform: uppercase; letter-spacing: 3px; font-size: 12px; color: #e8d0a0; margin-bottom: 14px; }
-.hero-title { font-family: var(--font-display); font-size: clamp(40px, 7vw, 80px); font-weight: 600; line-height: 1.02; color: #fff; }
-.hero-title em { color: #f0d898; font-style: italic; }
-.hero-lead { font-size: 19px; color: rgba(255,255,255,0.88); margin: 20px 0 28px; max-width: 620px; }
-
-.hero-search { display: flex; gap: 0; max-width: 520px; margin-bottom: 22px; box-shadow: var(--shadow-soft); border-radius: 11px; overflow: hidden; }
-.hero-search input { flex: 1; border: 2px solid rgba(255,255,255,0.4); border-right: none; padding: 14px 18px; font-family: var(--font-body); font-size: 16px; background: rgba(250,246,239,0.95); color: var(--ink); border-radius: 11px 0 0 11px; }
-.hero-search input::placeholder { color: #6a8a6a; }
-.hero-search input:focus { outline: none; border-color: var(--gold-soft); background: var(--cream); }
-.hero-search button { background: var(--brown); color: #faf6ef; border: none; padding: 0 24px; font-size: 17px; border-radius: 0 11px 11px 0; font-weight: 700; }
-.hero-search button:hover { background: var(--brown-dark); color: #faf6ef; }
-.hero-cta { display: flex; gap: 12px; flex-wrap: wrap; }
-
-/* ============================ SECTIONS ============================ */
-.section { max-width: 1200px; margin: 0 auto; padding: 48px 28px; }
-.section-head { text-align: center; margin-bottom: 32px; }
-.section-head h2 { font-family: var(--font-display); font-size: 38px; font-weight: 600; color: var(--green-dark); }
-.section-head p { color: var(--ink-soft); font-size: 17px; }
-
-/* Sfäärid */
-.sfaar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 14px; }
-.sfaar-card {
-  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
-  padding: 22px 16px; text-align: center; cursor: pointer;
-  transition: all .3s var(--ease); position: relative; overflow: hidden;
-}
-.sfaar-card::before { content: ""; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(46,125,50,0.10), rgba(184,144,30,0.10)); opacity: 0; transition: opacity .3s; }
-.sfaar-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-soft); border-color: var(--green-mid); border-top: 3px solid var(--green); }
-.sfaar-card:hover::before { opacity: 1; }
-.sfaar-icon { font-size: 36px; margin-bottom: 10px; }
-.sfaar-card h3 { font-family: var(--font-display); font-size: 21px; color: var(--green-dark); font-weight: 600; }
-.sfaar-card .sfaar-count { font-size: 12px; color: var(--green-muted); margin-top: 3px; }
-
-/* Esiletõstetud olendid */
-.esile-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 18px; }
-
-/* Tutvustus */
-.section-tutvustus { padding-top: 0; }
-.tutvustus-card {
-  background: linear-gradient(135deg, var(--brown-dark) 0%, var(--brown) 60%, #5a3820 100%);
-  color: #f0f7f0; border-radius: 18px; padding: 44px; position: relative; overflow: hidden;
-}
-.tutvustus-card::after { content: "ᛗ"; position: absolute; right: -10px; bottom: -40px; font-size: 200px; color: rgba(255,255,255,0.05); }
-.tutvustus-card h2 { font-family: var(--font-display); font-size: 34px; color: #f0d898; margin-bottom: 14px; }
-.tutvustus-card p { font-size: 17px; margin-bottom: 12px; max-width: 760px; color: rgba(255,255,255,0.88); }
-
-.site-footer { text-align: center; padding: 28px; color: var(--ink-soft); border-top: 2px solid var(--line); font-size: 13px; background: var(--beige-dark); }
-
-/* ============================ OLENDI KAARDID ============================ */
-.olend-grid { max-width: 1200px; margin: 0 auto; padding: 18px 28px 48px; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 18px; }
-.olend-card {
-  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
-  overflow: hidden; cursor: pointer; transition: all .3s var(--ease); display: flex; flex-direction: column;
-}
-.olend-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-soft); border-color: var(--green-mid); }
-.olend-card-img { height: 148px; background: var(--surface-2); position: relative; overflow: hidden; }
-.olend-card-img img { width: 100%; height: 100%; object-fit: cover; }
-.olend-card-img .placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 50px; color: var(--green-soft); background: linear-gradient(135deg, var(--green-pale), var(--sand)); }
-.olend-card-body { padding: 14px; flex: 1; display: flex; flex-direction: column; }
-.olend-card-body h3 { font-family: var(--font-display); font-size: 23px; color: var(--green-dark); font-weight: 600; }
-.olend-card-sfaar { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--green-muted); margin: 2px 0 6px; }
-.olend-card-desc { font-size: 13px; color: var(--ink-soft); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.olend-card-tags { margin-top: auto; padding-top: 10px; display: flex; flex-wrap: wrap; gap: 5px; }
-.tag { font-size: 11px; background: var(--green-pale); color: var(--green-dark); padding: 3px 8px; border-radius: 20px; border: 1px solid var(--green-soft); }
-
-/* ============================ FILTRID ============================ */
-.filters { max-width: 1200px; margin: 0 auto; padding: 12px 28px; display: flex; gap: 10px; flex-wrap: wrap; }
-.filters input, .filters select {
-  font-family: var(--font-body); font-size: 14px; padding: 10px 13px;
-  border: 1.5px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--ink);
-}
-.filters input { flex: 1; min-width: 180px; }
-.filters input:focus, .filters select:focus { outline: none; border-color: var(--green); }
-
-/* ============================ V3 — DETAIL ============================ */
-.detail { max-width: 1000px; margin: 0 auto; padding: 12px 28px 56px; }
-.detail-hero { display: grid; grid-template-columns: 320px 1fr; gap: 30px; align-items: start; }
-.detail-img { border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-card); cursor: zoom-in; background: var(--green-pale); }
-.detail-img img { width: 100%; aspect-ratio: 4/5; object-fit: cover; }
-.detail-img .placeholder { aspect-ratio: 4/5; display: flex; align-items: center; justify-content: center; font-size: 80px; color: var(--green-soft); background: linear-gradient(135deg, var(--green-pale), var(--sand)); }
-.detail-meta h1 { font-family: var(--font-display); font-size: 48px; color: var(--green-dark); font-weight: 600; line-height: 1.05; }
-.detail-sfaar-badge { display: inline-block; margin: 6px 0 14px; font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; background: var(--green); color: #fff; padding: 4px 12px; border-radius: 20px; }
-.detail-actions { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
-.fav-btn { background: var(--green-pale); border: 1px solid var(--green-soft); color: var(--green-dark); padding: 8px 14px; border-radius: 9px; font-size: 14px; }
-.fav-btn.on { background: var(--green); color: #fff; border-color: var(--green); }
-.detail-desc { font-size: 17px; color: var(--ink); margin-bottom: 18px; }
-
-.detail-block { margin-top: 22px; }
-.detail-block h3 { font-family: var(--font-display); font-size: 24px; color: var(--green); border-bottom: 2px solid var(--line); padding-bottom: 6px; margin-bottom: 12px; }
-.audio-player { width: 100%; margin-top: 8px; }
-.detail-sources li { margin-bottom: 6px; color: var(--ink-soft); }
-.detail-map { height: 280px; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-card); }
-.related-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
-
-/* ============================ KAART ============================ */
-.view-map { padding-top: var(--nav-h); position: relative; height: 100vh; }
-#map { position: absolute; inset: var(--nav-h) 0 0 0; width: 100%; }
-.map-panel {
-  position: fixed; right: 0; top: var(--nav-h); bottom: 0; width: 30%; max-width: 440px;
-  background: var(--surface); border-left: 3px solid var(--green);
-  padding: 28px; overflow-y: auto; box-shadow: -6px 0 28px rgba(0,0,0,0.16);
-  z-index: 50; transform: translateX(100%); transition: transform .4s var(--ease);
-}
-.map-panel.visible { transform: translateX(0); }
-.map-panel-close { position: absolute; top: 14px; right: 18px; background: none; border: none; font-size: 28px; color: var(--green); line-height: 1; display: none; }
-.map-panel.locked .map-panel-close { display: block; }
-.map-panel h2 { font-family: var(--font-display); font-size: 32px; color: var(--green-dark); padding-right: 28px; }
-.map-panel-maakond { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--green-muted); }
-.map-panel-kub { display: none; }
-.map-panel-subtitle { font-family: var(--font-display); font-size: 20px; color: var(--green); border-bottom: 1px solid var(--line); padding-bottom: 5px; margin: 18px 0 12px; }
-.mp-olend { display: flex; gap: 10px; align-items: center; padding: 9px; border-radius: 9px; cursor: pointer; transition: background .2s; }
-.mp-olend:hover { background: var(--green-pale); }
-.mp-olend-thumb { width: 48px; height: 48px; border-radius: 7px; object-fit: cover; flex-shrink: 0; background: var(--green-pale); display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--green-soft); }
-.mp-olend h4 { font-family: var(--font-display); font-size: 19px; color: var(--green-dark); }
-.mp-olend span { font-size: 11px; color: var(--green-muted); text-transform: uppercase; letter-spacing: 1px; }
-
-/* ============================ V4 — ADMIN ============================ */
-.admin-stats { max-width: 1150px; margin: 0 auto; padding: 6px 28px 16px; display: flex; gap: 14px; flex-wrap: wrap; }
-.stat-card { background: var(--surface); border: 1px solid var(--line); border-radius: 11px; padding: 14px 22px; min-width: 130px; border-left: 4px solid var(--green); }
-.stat-card .num { font-family: var(--font-display); font-size: 34px; color: var(--green-dark); font-weight: 600; }
-.stat-card .lbl { font-size: 12px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 1px; }
-
-.table-wrap { max-width: 1150px; margin: 0 auto; padding: 0 28px 48px; overflow-x: auto; }
-.admin-table { width: 100%; border-collapse: collapse; background: var(--surface); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-card); }
-.admin-table th { text-align: left; padding: 14px; background: var(--brown-dark); color: #faf6ef; font-family: var(--font-display); font-size: 17px; border-bottom: 2px solid var(--brown); }
-.admin-table td { padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
-.admin-table tr:last-child td { border-bottom: none; }
-.admin-table tr:hover td { background: var(--beige); }
-.admin-table td .olend-name { font-family: var(--font-display); font-size: 19px; color: var(--green-dark); }
-
-.status-dot { display: inline-flex; align-items: center; gap: 7px; font-size: 14px; }
-.status-dot::before { content: ""; width: 10px; height: 10px; border-radius: 50%; }
-.status-dot.avaldatud::before { background: var(--st-avaldatud); }
-.status-dot.mustand::before { background: var(--st-mustand); }
-.status-dot.modereerimisel::before { background: var(--st-modereerimisel); }
-
-.row-actions { display: flex; gap: 7px; flex-wrap: wrap; }
-.row-actions select { font-family: var(--font-body); padding: 5px 7px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); }
-.icon-btn { background: var(--green-pale); border: 1px solid var(--green-soft); border-radius: 7px; padding: 5px 9px; font-size: 12px; color: var(--green-dark); }
-.icon-btn:hover { background: var(--sand); }
-.icon-btn.danger { color: #b3261e; border-color: #e0b4b0; background: #fff; }
-.icon-btn.danger:hover { background: #f8e4e2; }
-
-/* ============================ V5 — PROFIIL ============================ */
-.profiil-card { max-width: 1150px; margin: 0 auto; padding: 6px 28px 0; }
-.profiil-inner { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 26px; display: flex; gap: 22px; align-items: center; box-shadow: var(--shadow-card); border-left: 5px solid var(--brown); }
-.profiil-avatar { width: 78px; height: 78px; border-radius: 50%; background: linear-gradient(135deg, var(--green), var(--green-dark)); color: #fff; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 36px; flex-shrink: 0; }
-.profiil-info h2 { font-family: var(--font-display); font-size: 30px; color: var(--green-dark); }
-.profiil-info p { color: var(--ink-soft); }
-.profiil-sub { max-width: 1150px; margin: 28px auto 0; padding: 0 28px; font-family: var(--font-display); font-size: 28px; color: var(--green-dark); }
-
-/* ============================ V6 — VORM ============================ */
-.olend-vorm { max-width: 820px; margin: 0 auto; padding: 6px 28px 56px; }
-.olend-vorm label { display: block; margin-bottom: 14px; font-size: 13px; font-weight: 600; color: var(--green-dark); text-transform: uppercase; letter-spacing: 0.5px; }
-.olend-vorm input, .olend-vorm select, .olend-vorm textarea {
-  display: block; width: 100%; margin-top: 5px; font-family: var(--font-body); font-size: 15px; font-weight: 400;
-  padding: 11px 13px; border: 1.5px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--ink);
-  text-transform: none; letter-spacing: 0;
-}
-.olend-vorm input:focus, .olend-vorm select:focus, .olend-vorm textarea:focus { outline: none; border-color: var(--green); }
-.olend-vorm textarea { resize: vertical; }
-.vorm-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.vorm-block { background: var(--beige); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; }
-.vorm-block-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-.vorm-block-head span { font-family: var(--font-display); font-size: 19px; color: var(--green-dark); }
-.vorm-dynamic-row { display: flex; gap: 9px; margin-bottom: 9px; align-items: center; }
-.vorm-dynamic-row input, .vorm-dynamic-row select { margin-top: 0; }
-.vorm-dynamic-row .rm { background: #f8e4e2; border: 1px solid #e0b4b0; color: #b3261e; border-radius: 7px; padding: 0 11px; height: 42px; font-size: 17px; flex-shrink: 0; }
-.vorm-actions { display: flex; align-items: center; gap: 16px; }
-.vorm-teade { font-size: 14px; }
-.vorm-teade.ok { color: var(--green); }
-.vorm-teade.err { color: #b3261e; }
-
-/* ============================ MODAAL ============================ */
-.modal { position: fixed; inset: 0; z-index: 2000; display: flex; align-items: center; justify-content: center; }
-.modal-backdrop { position: absolute; inset: 0; background: rgba(10,30,10,0.60); backdrop-filter: blur(4px); animation: fade-in .25s; }
-.modal-box { position: relative; background: var(--surface); border-radius: 18px; padding: 36px; width: 100%; max-width: 400px; box-shadow: var(--shadow-soft); animation: pop .3s var(--ease); border-top: 4px solid var(--green); }
-@keyframes pop { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
-.modal-close { position: absolute; top: 14px; right: 16px; background: none; border: none; font-size: 26px; color: var(--brown); line-height: 1; }
-.auth-tabs { display: flex; gap: 7px; margin-bottom: 22px; background: var(--beige-dark); border-radius: 11px; padding: 4px; }
-.auth-tab { flex: 1; padding: 9px; border: none; background: none; border-radius: 8px; font-size: 15px; color: var(--ink-soft); }
-.auth-tab.active { background: var(--cream); color: var(--brown-dark); font-weight: 600; box-shadow: var(--shadow-card); }
-.auth-form label { display: block; margin-bottom: 14px; font-size: 13px; font-weight: 600; color: var(--brown-dark); }
-.auth-form input { display: block; width: 100%; margin-top: 5px; padding: 11px 13px; border: 1.5px solid var(--line); border-radius: 9px; font-family: var(--font-body); font-size: 15px; background: var(--beige); }
-.auth-form input:focus { outline: none; border-color: var(--brown); }
-.auth-form button { width: 100%; margin-top: 5px; }
-.auth-hint { text-align: center; font-size: 13px; color: var(--ink-soft); margin-top: 12px; }
-.modal-error { background: #f8e4e2; color: #b3261e; border-radius: 7px; padding: 9px; margin-top: 12px; text-align: center; font-size: 13px; }
-
-/* ============================ LIGHTBOX ============================ */
-.lightbox { position: fixed; inset: 0; z-index: 3000; background: rgba(10,20,10,0.94); display: flex; align-items: center; justify-content: center; padding: 36px; animation: fade-in .25s; }
-.lightbox img { max-width: 92vw; max-height: 88vh; border-radius: 8px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
-.lightbox-close { position: absolute; top: 22px; right: 28px; background: none; border: none; color: #fff; font-size: 42px; line-height: 1; }
-
-/* ============================ TOAST ============================ */
-.toast-wrap { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); z-index: 4000; display: flex; flex-direction: column; gap: 9px; align-items: center; }
-.toast { background: var(--brown-dark); color: #faf6ef; padding: 12px 20px; border-radius: 11px; box-shadow: var(--shadow-soft); font-size: 14px; animation: toast-in .3s var(--ease); }
-.toast.err { background: #8c1d18; }
-@keyframes toast-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-
-/* ============================ V1 — HOME LAYOUT ============================ */
+/* ============================ V1 — AVALEHT (atlas) ============================ */
 #view-home {
   display: flex;
   flex-direction: column;
@@ -395,95 +228,481 @@ body::before {
 .home-layout {
   display: flex;
   flex: 1;
-  min-height: 400px;
+  min-height: 480px;
   overflow: hidden;
 }
 
+/* --- Sfääripaneel: navbari männikroomi jätk --- */
 .sfaar-sidebar {
-  width: 215px;
+  width: 240px;
   flex-shrink: 0;
-  background: #fff;
-  border-right: 1px solid #e5e7eb;
-  padding: 18px 0 18px;
+  display: flex; flex-direction: column;
+  background: linear-gradient(180deg, var(--pine-deep) 0%, var(--pine) 55%, var(--pine-soft) 100%);
+  border-right: 1px solid var(--pine-line);
+  padding: 20px 0 16px;
   overflow-y: auto;
 }
 
+.sfaar-sidebar-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding: 0 18px 4px;
+}
 .sfaar-sidebar-title {
-  font-family: var(--font-body);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1.8px;
-  color: #6b7280;
-  padding: 0 16px 12px;
-  text-transform: uppercase;
+  font-family: var(--font-display);
+  font-size: 20px; font-weight: 600; letter-spacing: 0.5px;
+  color: var(--gold-bright);
+}
+.sfaar-reset {
+  background: none; border: none; font-size: 12px;
+  color: var(--pine-ink-dim); text-decoration: underline;
+}
+.sfaar-reset:hover { color: var(--gold-bright); }
+.sfaar-sidebar-hint {
+  font-size: 12.5px; line-height: 1.5; color: var(--pine-ink-dim);
+  padding: 0 18px 14px;
 }
 
+/* Sfäärinupp = filtrilüliti. Aktiivsel kuldne serv + täht. */
 .sfaar-item {
   display: flex; align-items: center; gap: 12px;
-  padding: 9px 16px; cursor: pointer;
-  transition: background .15s;
+  width: 100%; text-align: left;
+  padding: 10px 18px;
+  background: none; border: none;
+  border-left: 3px solid transparent;
+  color: var(--pine-ink);
+  transition: background .15s, border-color .2s;
 }
-.sfaar-item:hover { background: #f3f4f6; }
-
+.sfaar-item:hover { background: rgba(193, 154, 61, 0.08); }
+.sfaar-item.active {
+  background: rgba(193, 154, 61, 0.12);
+  border-left-color: var(--gold);
+}
 .sfaar-item-icon {
-  width: 30px; height: 30px; border-radius: 7px;
+  width: 32px; height: 32px; border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; color: #fff;
+  flex-shrink: 0; color: #f3eddc;
+  background: var(--sf-color, var(--pine-soft));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  transition: transform .2s var(--ease);
 }
+.sfaar-item:hover .sfaar-item-icon { transform: scale(1.07); }
 .sfaar-item-icon svg { width: 16px; height: 16px; }
-
 .sfaar-item-name {
-  font-size: 14px; font-weight: 500; color: #111;
-  font-family: var(--font-body);
+  flex: 1;
+  font-family: var(--font-display);
+  font-size: 17px; font-weight: 500; letter-spacing: 0.3px;
+}
+.sfaar-item-check {
+  font-size: 13px; color: var(--gold-bright);
+  opacity: 0; transform: scale(.5);
+  transition: opacity .2s, transform .25s var(--ease);
+}
+.sfaar-item.active .sfaar-item-check { opacity: 1; transform: scale(1); }
+
+.sidebar-ornament {
+  margin-top: auto; padding: 16px 18px 4px;
+  text-align: center; font-size: 12px; letter-spacing: 8px;
+  color: var(--gold-dim);
 }
 
+/* --- Kaardiala --- */
 .home-map-area { flex: 1; position: relative; }
 #home-map { position: absolute; inset: 0; width: 100%; height: 100%; }
+.map-missing {
+  display: flex; align-items: center; justify-content: center;
+  height: 100%; color: var(--ink-soft); font-style: italic;
+  background: var(--surface-2);
+}
 
-/* Viimati lisatud */
+/* ============================ KIHELKONNAPANEEL (jagatud) ====================
+   Sama komponent kahes kontekstis:
+   - #map-panel  : kaardilehel, fikseeritud akna serva
+   - #home-panel : avalehel, absoluutne kaardiala sees                       */
+.map-panel {
+  position: fixed; right: 0; top: var(--nav-h); bottom: 0;
+  width: 30%; max-width: 440px;
+  background: var(--surface);
+  border-left: 3px solid var(--fern);
+  padding: 28px; overflow-y: auto;
+  box-shadow: -8px 0 32px rgba(15, 26, 18, 0.22);
+  z-index: 50; transform: translateX(100%);
+  transition: transform .4s var(--ease);
+}
+#home-panel { position: absolute; top: 0; width: 75%; max-width: 380px; }
+.map-panel.visible { transform: translateX(0); }
+.map-panel-close {
+  position: absolute; top: 14px; right: 18px;
+  background: none; border: none; font-size: 28px;
+  color: var(--fern); line-height: 1; display: none;
+}
+.map-panel.locked .map-panel-close { display: block; }
+.map-panel h2 {
+  font-family: var(--font-display); font-size: 30px;
+  color: var(--fern-dark); padding-right: 28px; line-height: 1.1;
+}
+.map-panel-maakond {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--gold-dim);
+}
+.map-panel-subtitle {
+  font-family: var(--font-display); font-size: 20px; color: var(--fern);
+  border-bottom: 1px solid var(--line); padding-bottom: 5px; margin: 18px 0 12px;
+}
+.mp-olend {
+  display: flex; gap: 10px; align-items: center;
+  padding: 9px; border-radius: 9px; cursor: pointer; transition: background .2s;
+}
+.mp-olend:hover { background: var(--fern-pale); }
+.mp-olend-thumb {
+  width: 48px; height: 48px; border-radius: 7px; flex-shrink: 0;
+  background: var(--fern-pale); overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; color: var(--fern-soft);
+}
+.mp-olend-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.mp-olend h4 { font-family: var(--font-display); font-size: 19px; color: var(--fern-dark); }
+.mp-olend span { font-size: 11px; color: var(--fern-muted); text-transform: uppercase; letter-spacing: 1px; }
+.mp-laen { color: var(--ink-soft); }
+.mp-tühi { color: var(--ink-soft); font-style: italic; }
+.mp-viga { color: var(--danger); }
+
+/* Mapboxi hüpikakna kohandus paletiga */
+.mapboxgl-popup-content {
+  font-family: var(--font-body);
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  box-shadow: var(--shadow-card);
+  padding: 10px 14px;
+}
+.mapboxgl-popup-content strong { font-family: var(--font-display); font-size: 17px; color: var(--fern-dark); }
+.mapboxgl-popup-content small { color: var(--ink-soft); text-transform: uppercase; letter-spacing: 1px; font-size: 10px; }
+.mapboxgl-popup-content a { font-size: 13px; color: var(--fern); }
+.mapboxgl-popup-tip { border-top-color: var(--cream) !important; }
+
+/* ============================ VIIMATI LISATUD ============================ */
 .viimati-section {
-  padding: 20px 24px 24px;
-  background: #fff;
-  border-top: 1px solid #e5e7eb;
+  padding: 22px 28px 26px;
+  background: var(--beige);
+  border-top: 3px solid var(--pine-line);
   flex-shrink: 0;
 }
 .viimati-header {
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; align-items: baseline; justify-content: space-between;
   margin-bottom: 14px;
 }
 .viimati-title {
-  font-family: var(--font-body); font-size: 17px; font-weight: 600; color: #111;
+  font-family: var(--font-display); font-size: 24px; font-weight: 600;
+  color: var(--brown-dark);
 }
-.vaata-koiki {
-  font-size: 14px; color: #2563eb; font-weight: 500; text-decoration: none;
-}
-.vaata-koiki:hover { text-decoration: underline; }
+.vaata-koiki { font-size: 14px; color: var(--fern); font-weight: 500; }
+.vaata-koiki:hover { color: var(--fern-dark); text-decoration: underline; }
 
-.viimati-grid {
-  display: flex; gap: 14px;
-  overflow-x: auto; padding-bottom: 2px;
-}
+.viimati-grid { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 4px; }
 .viimati-grid::-webkit-scrollbar { height: 4px; }
-.viimati-grid::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+.viimati-grid::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
 
 .viimati-card {
-  flex-shrink: 0; width: 138px;
-  background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
-  overflow: hidden; cursor: pointer; transition: box-shadow .2s;
+  flex-shrink: 0; width: 150px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  overflow: hidden; cursor: pointer;
+  transition: transform .25s var(--ease), box-shadow .25s, border-color .25s;
 }
-.viimati-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.10); }
+.viimati-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-card); border-color: var(--fern-soft); }
 .viimati-card-img {
-  height: 96px; background: #dbeafe;
+  height: 100px; background: linear-gradient(135deg, var(--fern-pale), var(--surface-2));
   display: flex; align-items: center; justify-content: center;
-  color: #93c5fd; overflow: hidden;
+  color: var(--fern-soft); overflow: hidden;
 }
 .viimati-card-img img { width: 100%; height: 100%; object-fit: cover; }
-.viimati-card-body { padding: 9px 11px 11px; }
-.viimati-card-body h3 {
-  font-size: 14px; font-weight: 700; color: #111; margin-bottom: 2px;
-  font-family: var(--font-body);
+.viimati-card-body { padding: 9px 12px 12px; }
+.viimati-card-body h3 { font-family: var(--font-display); font-size: 18px; font-weight: 600; color: var(--fern-dark); margin-bottom: 1px; }
+.viimati-card-body p { font-size: 11px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 1px; }
+
+/* ============================ JALUS (männikroom) ============================ */
+.site-footer {
+  text-align: center; padding: 32px 28px;
+  background: linear-gradient(180deg, var(--pine) 0%, var(--pine-deep) 100%);
+  color: var(--pine-ink-dim); font-size: 13px;
+  border-top: 1px solid var(--pine-line);
 }
-.viimati-card-body p { font-size: 12px; color: #6b7280; }
+.footer-ornament { color: var(--gold-dim); letter-spacing: 6px; margin-bottom: 8px; font-size: 13px; }
+.footer-brand { font-family: var(--font-display); font-size: 19px; color: var(--pine-ink); margin-bottom: 2px; }
+.footer-links { margin-top: 8px; }
+.footer-links a { color: var(--gold-dim); }
+.footer-links a:hover { color: var(--gold-bright); text-decoration: underline; }
+
+/* ============================ OLENDI KAARDID ============================ */
+.olend-grid {
+  max-width: 1200px; margin: 0 auto; padding: 18px 28px 48px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 18px;
+}
+.olend-card {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  overflow: hidden; cursor: pointer; display: flex; flex-direction: column;
+  transition: transform .3s var(--ease), box-shadow .3s, border-color .3s;
+}
+.olend-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-soft); border-color: var(--fern-soft); }
+.olend-card-img { height: 148px; background: var(--surface-2); position: relative; overflow: hidden; }
+.olend-card-img img { width: 100%; height: 100%; object-fit: cover; }
+.placeholder {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 50px; color: var(--fern-soft);
+  background: linear-gradient(135deg, var(--fern-pale), var(--surface-2));
+}
+.olend-card-body { padding: 14px; flex: 1; display: flex; flex-direction: column; }
+.olend-card-body h3 { font-family: var(--font-display); font-size: 23px; color: var(--fern-dark); font-weight: 600; }
+.olend-card-sfaar { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--gold-dim); margin: 2px 0 6px; }
+.olend-card-desc {
+  font-size: 13px; color: var(--ink-soft);
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.olend-card-tags { margin-top: auto; padding-top: 10px; display: flex; flex-wrap: wrap; gap: 5px; }
+.tag {
+  font-size: 11px; background: var(--fern-pale); color: var(--fern-dark);
+  padding: 3px 8px; border-radius: 20px; border: 1px solid var(--fern-soft);
+}
+
+/* ============================ FILTRID ============================ */
+.filters { max-width: 1200px; margin: 0 auto; padding: 12px 28px; display: flex; gap: 10px; flex-wrap: wrap; }
+.filters input, .filters select {
+  font-family: var(--font-body); font-size: 14px; padding: 10px 13px;
+  border: 1.5px solid var(--line); border-radius: 9px;
+  background: var(--surface); color: var(--ink);
+}
+.filters input { flex: 1; min-width: 180px; }
+.filters input:focus, .filters select:focus { outline: none; border-color: var(--fern); }
+
+/* ============================ V3 — DETAIL ============================ */
+.detail { max-width: 1000px; margin: 0 auto; padding: 12px 28px 56px; }
+.detail-hero { display: grid; grid-template-columns: 320px 1fr; gap: 30px; align-items: start; }
+.detail-img {
+  border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-card);
+  cursor: zoom-in; background: var(--fern-pale);
+  border: 1px solid var(--line);
+}
+.detail-img img { width: 100%; aspect-ratio: 4/5; object-fit: cover; }
+.detail-img .placeholder { aspect-ratio: 4/5; font-size: 80px; }
+.detail-meta h1 {
+  font-family: var(--font-display); font-size: clamp(38px, 5vw, 52px);
+  color: var(--fern-dark); font-weight: 600; line-height: 1.05;
+}
+.detail-sfaar-badge {
+  display: inline-block; margin: 8px 0 14px;
+  font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px;
+  background: var(--fern); color: #fff; padding: 4px 12px; border-radius: 20px;
+}
+.detail-actions { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.fav-btn {
+  background: var(--fern-pale); border: 1px solid var(--fern-soft);
+  color: var(--fern-dark); padding: 8px 14px; border-radius: 9px; font-size: 14px;
+  transition: background .2s;
+}
+.fav-btn:hover { background: var(--surface-2); }
+.fav-btn.on { background: var(--fern); color: #fff; border-color: var(--fern); }
+.detail-desc { font-size: 17px; color: var(--ink); margin-bottom: 18px; }
+
+.detail-block { margin-top: 24px; }
+.detail-block h3 {
+  font-family: var(--font-display); font-size: 24px; color: var(--fern);
+  border-bottom: 2px solid var(--line); padding-bottom: 6px; margin-bottom: 12px;
+}
+.audio-player { width: 100%; margin-top: 8px; }
+.detail-sources li { margin-bottom: 6px; color: var(--ink-soft); }
+.detail-sources a { color: var(--gold-dim); text-decoration: underline; }
+.detail-sources a:hover { color: var(--gold); }
+.detail-map { height: 280px; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-card); border: 1px solid var(--line); }
+.related-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+
+/* ============================ KAARDILEHT ============================ */
+.view-map { padding-top: var(--nav-h); position: relative; height: 100vh; }
+#map { position: absolute; inset: var(--nav-h) 0 0 0; width: 100%; }
+
+/* ============================ V4 — ADMIN ============================ */
+.admin-stats { max-width: 1150px; margin: 0 auto; padding: 6px 28px 16px; display: flex; gap: 14px; flex-wrap: wrap; }
+.stat-card {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 11px;
+  padding: 14px 22px; min-width: 130px; border-left: 4px solid var(--fern);
+}
+.stat-card .num { font-family: var(--font-display); font-size: 34px; color: var(--fern-dark); font-weight: 600; }
+.stat-card .lbl { font-size: 12px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 1px; }
+
+.table-wrap { max-width: 1150px; margin: 0 auto; padding: 0 28px 48px; overflow-x: auto; }
+.admin-table {
+  width: 100%; border-collapse: collapse; background: var(--surface);
+  border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-card);
+}
+.admin-table th {
+  text-align: left; padding: 14px;
+  background: var(--pine); color: var(--pine-ink);
+  font-family: var(--font-display); font-size: 17px;
+  border-bottom: 2px solid var(--gold-dim);
+}
+.admin-table td { padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.admin-table tr:last-child td { border-bottom: none; }
+.admin-table tr:hover td { background: var(--beige); }
+.admin-table td .olend-name { font-family: var(--font-display); font-size: 19px; color: var(--fern-dark); }
+
+.status-dot { display: inline-flex; align-items: center; gap: 7px; font-size: 14px; }
+.status-dot::before { content: ""; width: 10px; height: 10px; border-radius: 50%; }
+.status-dot.avaldatud::before { background: var(--st-avaldatud); }
+.status-dot.mustand::before { background: var(--st-mustand); }
+.status-dot.modereerimisel::before { background: var(--st-modereerimisel); }
+
+.row-actions { display: flex; gap: 7px; flex-wrap: wrap; }
+.row-actions select {
+  font-family: var(--font-body); padding: 5px 7px;
+  border: 1px solid var(--line); border-radius: 7px; background: var(--surface);
+}
+.icon-btn {
+  background: var(--fern-pale); border: 1px solid var(--fern-soft);
+  border-radius: 7px; padding: 5px 9px; font-size: 12px; color: var(--fern-dark);
+}
+.icon-btn:hover { background: var(--surface-2); }
+.icon-btn.danger { color: var(--danger); border-color: #dcb3ad; background: var(--surface); }
+.icon-btn.danger:hover { background: var(--danger-bg); }
+
+/* ============================ V5 — PROFIIL ============================ */
+.profiil-card { max-width: 1150px; margin: 0 auto; padding: 6px 28px 0; }
+.profiil-inner {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 26px; display: flex; gap: 22px; align-items: center;
+  box-shadow: var(--shadow-card); border-left: 5px solid var(--gold);
+}
+.profiil-avatar {
+  width: 78px; height: 78px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--fern), var(--pine));
+  color: var(--gold-bright);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 36px; flex-shrink: 0;
+  box-shadow: inset 0 0 0 2px var(--gold-dim);
+}
+.profiil-info h2 { font-family: var(--font-display); font-size: 30px; color: var(--fern-dark); }
+.profiil-info p { color: var(--ink-soft); }
+.profiil-info .urole {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+  background: var(--fern-pale); color: var(--fern-dark);
+  padding: 2px 9px; border-radius: 20px; border: 1px solid var(--fern-soft);
+}
+.profiil-sub {
+  max-width: 1150px; margin: 28px auto 0; padding: 0 28px;
+  font-family: var(--font-display); font-size: 28px; color: var(--fern-dark);
+}
+
+/* ============================ V6 — VORM ============================ */
+.olend-vorm { max-width: 820px; margin: 0 auto; padding: 6px 28px 56px; }
+.olend-vorm label {
+  display: block; margin-bottom: 14px; font-size: 13px; font-weight: 600;
+  color: var(--fern-dark); text-transform: uppercase; letter-spacing: 0.5px;
+}
+.olend-vorm input, .olend-vorm select, .olend-vorm textarea {
+  display: block; width: 100%; margin-top: 5px;
+  font-family: var(--font-body); font-size: 15px; font-weight: 400;
+  padding: 11px 13px; border: 1.5px solid var(--line); border-radius: 9px;
+  background: var(--surface); color: var(--ink);
+  text-transform: none; letter-spacing: 0;
+}
+.olend-vorm input:focus, .olend-vorm select:focus, .olend-vorm textarea:focus {
+  outline: none; border-color: var(--fern);
+}
+.olend-vorm textarea { resize: vertical; }
+.vorm-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.vorm-block {
+  background: var(--beige); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 16px; margin-bottom: 16px;
+}
+.vorm-block-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.vorm-block-head span { font-family: var(--font-display); font-size: 19px; color: var(--fern-dark); }
+.vorm-dynamic-row { display: flex; gap: 9px; margin-bottom: 9px; align-items: center; }
+.vorm-dynamic-row input, .vorm-dynamic-row select { margin-top: 0; }
+.vorm-dynamic-row .rm {
+  background: var(--danger-bg); border: 1px solid #dcb3ad; color: var(--danger);
+  border-radius: 7px; padding: 0 11px; height: 42px; font-size: 17px; flex-shrink: 0;
+}
+.vorm-actions { display: flex; align-items: center; gap: 16px; }
+.vorm-teade { font-size: 14px; }
+.vorm-teade.ok { color: var(--fern); }
+.vorm-teade.err { color: var(--danger); }
+
+/* ============================ MODAAL ============================ */
+.modal { position: fixed; inset: 0; z-index: 2000; display: flex; align-items: center; justify-content: center; }
+.modal-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(15, 26, 18, 0.66); backdrop-filter: blur(4px);
+  animation: fade-in .25s;
+}
+.modal-box {
+  position: relative; background: var(--surface); border-radius: 18px;
+  padding: 36px; width: 100%; max-width: 400px;
+  box-shadow: var(--shadow-soft); animation: pop .3s var(--ease);
+  border-top: 4px solid var(--gold);
+}
+@keyframes pop { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
+.modal-close { position: absolute; top: 14px; right: 16px; background: none; border: none; font-size: 26px; color: var(--brown); line-height: 1; }
+.auth-tabs { display: flex; gap: 7px; margin-bottom: 22px; background: var(--surface-2); border-radius: 11px; padding: 4px; }
+.auth-tab { flex: 1; padding: 9px; border: none; background: none; border-radius: 8px; font-size: 15px; color: var(--ink-soft); }
+.auth-tab.active { background: var(--cream); color: var(--fern-dark); font-weight: 600; box-shadow: var(--shadow-card); }
+.auth-form label { display: block; margin-bottom: 14px; font-size: 13px; font-weight: 600; color: var(--brown-dark); }
+.auth-form input {
+  display: block; width: 100%; margin-top: 5px; padding: 11px 13px;
+  border: 1.5px solid var(--line); border-radius: 9px;
+  font-family: var(--font-body); font-size: 15px; background: var(--beige);
+}
+.auth-form input:focus { outline: none; border-color: var(--fern); }
+.auth-form button { width: 100%; margin-top: 5px; }
+.auth-hint { text-align: center; font-size: 13px; color: var(--ink-soft); margin-top: 12px; }
+.modal-error { background: var(--danger-bg); color: var(--danger); border-radius: 7px; padding: 9px; margin-top: 12px; text-align: center; font-size: 13px; }
+
+/* GDPR nõusoleku rida registreerimisvormis */
+.consent-row {
+  display: flex !important; flex-direction: row !important;
+  align-items: flex-start; gap: 9px;
+  font-size: 13px; line-height: 1.45; color: var(--ink-soft);
+}
+.consent-row input[type="checkbox"] { margin-top: 2px; width: 16px; height: 16px; flex-shrink: 0; }
+.consent-row a { color: var(--gold-dim); text-decoration: underline; }
+#reg-turnstile { margin: 4px 0 2px; }
+
+/* ============================ LIGHTBOX ============================ */
+.lightbox {
+  position: fixed; inset: 0; z-index: 3000;
+  background: rgba(15, 26, 18, 0.94);
+  display: flex; align-items: center; justify-content: center;
+  padding: 36px; animation: fade-in .25s;
+}
+.lightbox img { max-width: 92vw; max-height: 88vh; border-radius: 8px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+.lightbox-close { position: absolute; top: 22px; right: 28px; background: none; border: none; color: #fff; font-size: 42px; line-height: 1; }
+
+/* ============================ TOAST ============================ */
+.toast-wrap {
+  position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+  z-index: 4000; display: flex; flex-direction: column; gap: 9px; align-items: center;
+}
+.toast {
+  background: var(--pine); color: var(--pine-ink);
+  border: 1px solid var(--pine-line); border-left: 3px solid var(--gold);
+  padding: 12px 20px; border-radius: 11px;
+  box-shadow: var(--shadow-soft); font-size: 14px;
+  animation: toast-in .3s var(--ease);
+}
+.toast.err { background: #5c1812; border-color: #7a2a22; border-left-color: var(--danger); color: #f3ddda; }
+@keyframes toast-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+/* ============================ JURIIDILISED LEHED ============================ */
+.legal-page {
+  max-width: 760px; margin: 0 auto; padding: 14px 28px 64px;
+  font-family: var(--font-body); color: var(--ink); line-height: 1.7;
+}
+.legal-page h2 { font-family: var(--font-display); font-size: 24px; color: var(--fern-dark); margin: 30px 0 8px; }
+.legal-page p { margin: 10px 0; }
+.legal-page ul { margin: 10px 0 10px 4px; padding-left: 22px; }
+.legal-page li { margin: 6px 0; }
+.legal-page a { color: var(--gold-dim); text-decoration: underline; }
+.legal-page a:hover { color: var(--gold); }
+.legal-page code { background: var(--surface-2); padding: 1px 5px; border-radius: 4px; font-size: 0.9em; }
+.legal-meta { color: var(--ink-soft); font-style: italic; font-size: 14px; }
+.legal-foot { margin-top: 36px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--ink-soft); }
 
 /* ============================ RESPONSIIVSUS ============================ */
 @media (max-width: 860px) {
@@ -491,74 +710,54 @@ body::before {
   .navbar-search { display: none; }
   .lang-btn { display: none; }
   .nav-links {
-    position: fixed; top: var(--nav-h); right: 0; bottom: 0; width: 250px;
+    position: fixed; top: var(--nav-h); right: 0; bottom: 0; width: 260px;
     flex-direction: column; align-items: flex-start; gap: 5px; padding: 20px;
-    background: #fff; border-left: 1px solid #e5e7eb;
-    box-shadow: -8px 0 30px rgba(0,0,0,0.12);
+    background: var(--pine-deep); border-left: 1px solid var(--pine-line);
+    box-shadow: -8px 0 30px rgba(0,0,0,0.4);
     transform: translateX(100%); transition: transform .35s var(--ease); margin-left: 0;
   }
   .nav-links.open { transform: translateX(0); }
-  .nav-links a[data-nav] { width: 100%; padding: 11px 0; border-bottom: 1px solid #f3f4f6; color: #111; }
+  .nav-links a[data-nav] {
+    width: 100%; padding: 11px 0;
+    border-bottom: 1px solid var(--pine-line); color: var(--pine-ink);
+  }
   .nav-auth { width: 100%; flex-direction: column; align-items: stretch; margin-top: 10px; }
   .nav-auth .btn { width: 100%; }
+
+  /* Avaleht: sfääripaneel muutub horisontaalseks kiibiribaks kaardi kohal */
+  .home-layout { flex-direction: column; min-height: 0; }
+  .sfaar-sidebar {
+    width: 100%; flex-direction: row; align-items: center;
+    overflow-x: auto; overflow-y: hidden;
+    padding: 10px 12px; gap: 4px;
+    border-right: none; border-bottom: 1px solid var(--pine-line);
+  }
+  .sfaar-sidebar-head { padding: 0 8px 0 4px; flex-shrink: 0; }
+  .sfaar-sidebar-hint, .sidebar-ornament { display: none; }
+  .sfaar-item {
+    width: auto; flex-shrink: 0;
+    padding: 6px 10px; gap: 8px;
+    border-left: none; border-radius: 20px;
+    border: 1px solid transparent;
+  }
+  .sfaar-item.active { border-color: var(--gold); }
+  .sfaar-item-icon { width: 24px; height: 24px; }
+  .sfaar-item-icon svg { width: 13px; height: 13px; }
+  .sfaar-item-name { font-size: 14px; }
+  .home-map-area { min-height: 58vh; }
+  #home-panel { width: 100%; max-width: none; }
+
+  .map-panel { width: 100%; max-width: none; }
   .detail-hero { grid-template-columns: 1fr; }
   .vorm-row { grid-template-columns: 1fr; }
-  .map-panel { width: 100%; max-width: none; }
-  .page-head h1 { font-size: 34px; }
-  .tutvustus-card { padding: 30px 22px; }
-  .section { padding: 36px 18px; }
-  .home-layout { min-height: 300px; }
-  .sfaar-sidebar { width: 160px; }
-  .sfaar-item-name { font-size: 13px; }
+  .page-head h1 { font-size: 32px; }
 }
-/* GDPR nõusoleku rida registreerimisvormis */
-.consent-row {
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: flex-start;
-  gap: 9px;
-  font-size: 13px;
-  line-height: 1.45;
-  color: var(--ink-soft);
-}
-.consent-row input[type="checkbox"] {
-  margin-top: 2px;
-  width: 16px; height: 16px;
-  flex-shrink: 0;
-}
-.consent-row a { color: var(--gold); text-decoration: underline; }
-#reg-turnstile { margin: 4px 0 2px; }
 
-/* Juriidilised lehed — privaatsuspoliitika, kasutustingimused */
-.legal-page {
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 14px 28px 64px;
-  font-family: var(--font-body);
-  color: var(--ink);
-  line-height: 1.7;
+/* Vähendatud liikumise eelistus — austame kasutaja seadet */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  html { scroll-behavior: auto; }
 }
-.legal-page h2 {
-  font-family: var(--font-display);
-  font-size: 24px;
-  color: var(--green-dark);
-  margin: 30px 0 8px;
-}
-.legal-page p { margin: 10px 0; }
-.legal-page ul { margin: 10px 0 10px 4px; padding-left: 22px; }
-.legal-page li { margin: 6px 0; }
-.legal-page a { color: var(--gold); text-decoration: underline; }
-.legal-page code {
-  background: var(--surface-2);
-  padding: 1px 5px; border-radius: 4px;
-  font-size: 0.9em;
-}
-.legal-meta { color: var(--ink-soft); font-style: italic; font-size: 14px; }
-.legal-foot {
-  margin-top: 36px; padding-top: 16px;
-  border-top: 1px solid var(--line);
-  color: var(--ink-soft);
-}
-.footer-links { margin-top: 6px; font-size: 13px; }
-.footer-links a { color: var(--gold-soft); text-decoration: none; }
-.footer-links a:hover { text-decoration: underline; }

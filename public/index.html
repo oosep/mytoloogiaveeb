@@ -15,7 +15,7 @@
   <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css" rel="stylesheet" />
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js"></script>
 
-  <link rel="stylesheet" href="style.css?v=3" />
+  <link rel="stylesheet" href="style.css?v=4" />
 
   <!-- Cloudflare Turnstile (CAPTCHA) — laaditakse asünkroonselt -->
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
@@ -25,7 +25,11 @@
   <!-- ================= NAVIGATSIOONIRIBA ================= -->
   <header class="navbar" id="navbar">
     <a href="#/" class="brand" data-nav>
-      <span class="brand-text">Mütoloogia</span>
+      <!-- Kaheksakand — Eesti etnograafiline kaitsemärk, veebi tunnusmärk -->
+      <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 1l2.2 6.1L20 4.5l-2.6 5.7L23.5 12l-6.1 1.8L20 19.5l-5.8-2.6L12 23l-2.2-6.1L4 19.5l2.6-5.7L.5 12l6.1-1.8L4 4.5l5.8 2.6z" fill="currentColor"/>
+      </svg>
+      <span class="brand-text">Mütoloogia<em>veeb</em></span>
     </a>
 
     <button class="nav-toggle" id="nav-toggle" aria-label="Menüü">
@@ -58,11 +62,30 @@
     <section class="view" id="view-home" hidden>
       <div class="home-layout">
         <aside class="sfaar-sidebar">
-          <h2 class="sfaar-sidebar-title">SFÄÄRID</h2>
-          <div id="sfaar-list"><!-- JS --></div>
+          <div class="sfaar-sidebar-head">
+            <h2 class="sfaar-sidebar-title">Sfäärid</h2>
+            <button class="sfaar-reset" id="sfaar-reset" hidden type="button">Tühjenda</button>
+          </div>
+          <p class="sfaar-sidebar-hint">Vali sfäär, et filtreerida olendeid kaardil.</p>
+          <div id="sfaar-list" role="group" aria-label="Sfääride filter"><!-- JS --></div>
+          <div class="sidebar-ornament" aria-hidden="true">✶ ✦ ✶</div>
         </aside>
         <div class="home-map-area">
           <div id="home-map"></div>
+          <!-- Avalehe kihelkonnapaneel — sama loogika mis kaardilehel -->
+          <aside class="map-panel" id="home-panel">
+            <button class="map-panel-close" id="home-panel-close" aria-label="Sulge">&times;</button>
+            <div id="home-panel-default">
+              <h2>Eesti kihelkonnad 1917</h2>
+              <p>Liiguta hiir kihelkonna kohale ja klõpsa, et näha sellega seotud mütoloogilisi olendeid.</p>
+            </div>
+            <div id="home-panel-detail" hidden>
+              <span class="map-panel-maakond" id="hp-maakond"></span>
+              <h2 id="hp-nimi">Kihelkond</h2>
+              <h3 class="map-panel-subtitle">Seotud olendid</h3>
+              <div id="hp-olendid"></div>
+            </div>
+          </aside>
         </div>
       </div>
 
@@ -75,7 +98,9 @@
       </section>
 
       <footer class="site-footer">
-        <p>Eesti Mütoloogiaveeb &middot; Tallinna Ülikool &middot; 2026</p>
+        <div class="footer-ornament" aria-hidden="true">✶ &nbsp;✦&nbsp; ✶</div>
+        <p class="footer-brand">Eesti Mütoloogiaveeb</p>
+        <p>Tallinna Ülikool &middot; 2026 &middot; pärimus on seotud 1917. aasta kihelkondadega</p>
         <p class="footer-links">
           <a href="#/privaatsus" data-nav>Privaatsuspoliitika</a> &middot;
           <a href="#/tingimused" data-nav>Kasutustingimused</a>
@@ -123,7 +148,6 @@
         <div id="map-panel-detail" hidden>
           <span class="map-panel-maakond" id="mp-maakond"></span>
           <h2 id="mp-nimi">Kihelkond</h2>
-          <p class="map-panel-kub" id="mp-kubermang"></p>
           <h3 class="map-panel-subtitle">Seotud olendid</h3>
           <div id="mp-olendid"></div>
         </div>
@@ -283,6 +307,6 @@
   <!-- Teavitused (toast) -->
   <div class="toast-wrap" id="toast-wrap"></div>
 
-  <script src="app.js?v=2"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>

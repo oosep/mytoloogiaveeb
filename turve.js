@@ -24,13 +24,21 @@ function turvapaised(req, res, next) {
   // Keela vananenud brauseri-API-d
   res.setHeader('Permissions-Policy', 'geolocation=(self), microphone=(), camera=()');
   // Content Security Policy — lubab ainult vajalikud välisallikad
-  // (Mapbox, Google Fonts, Cloudflare Turnstile). 'unsafe-inline' on vajalik,
-  // sest frontend kasutab inline onerror-käsitlejaid ja Mapbox inline-stiile.
+  // (Mapbox, Google Fonts, Cloudflare Turnstile).
+  //
+  // TURVAPARANDUS: 'unsafe-inline' on script-src'ist EEMALDATUD.
+  // Varem oli see vajalik, sest frontend kasutas inline onerror=""
+  // atribuute. Need on app.js-is asendatud ühe delegeeritud
+  // addEventListener('error', ..., true) käsitlejaga. Nüüd ei käivitu
+  // ükski HTML-i sisse süstitud <script> ega on*-atribuut — isegi kui
+  // ründaja peaks leidma viisi HTML-i sisestada, blokeerib brauser selle.
+  // ('unsafe-inline' jääb ainult style-src'i, sest Mapbox GL lisab
+  // elementidele inline-stiile — stiilide kaudu skripti käivitada ei saa.)
   res.setHeader(
     'Content-Security-Policy',
     [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://api.mapbox.com https://challenges.cloudflare.com",
+      "script-src 'self' https://api.mapbox.com https://challenges.cloudflare.com",
       "style-src 'self' 'unsafe-inline' https://api.mapbox.com https://fonts.googleapis.com",
       "img-src 'self' data: https:",
       "font-src 'self' https://fonts.gstatic.com",
@@ -40,6 +48,9 @@ function turvapaised(req, res, next) {
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
+      // frame-ancestors on X-Frame-Options'i kaasaegne CSP-vaste —
+      // mõlemad koos katavad nii vanad kui uued brauserid.
+      "frame-ancestors 'none'",
     ].join('; ')
   );
   // HSTS — sunni HTTPS-i (toimib alles HTTPS-i all, Railwayl on see olemas)

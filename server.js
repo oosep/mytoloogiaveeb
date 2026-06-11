@@ -184,6 +184,37 @@ app.use('/api/', (req, res, next) => {
 // --- Sisendi valideerimise abifunktsioonid --------------------------------
 const LUBATUD_SFAARID = ['Mets', 'Vesi', 'Kodu', 'Ilm', 'Kivid ja koopad', 'Põrgu', 'Muud'];
 
+/**
+ * TURVAPARANDUS: kontrollib, et URL kasutab AINULT http(s) protokolli.
+ * Miks: frontend paneb need väärtused <img src>, <audio src> ja <a href>
+ * atribuutidesse. HTML-escape (esc) kaitseb märgendisüsti eest, aga MITTE
+ * "javascript:alert(1)" stiilis protokollisüsti eest — <a href="javascript:...">
+ * käivitaks koodi kasutaja klõpsul. Valideerime serveris (mitte ainult
+ * kliendis!), sest API-t saab kutsuda ka otse, vormist mööda minnes.
+ */
+function onTurvalineUrl(u) {
+  if (!u) return true; // tühi väärtus on lubatud (väli pole kohustuslik)
+  try {
+    const parsed = new URL(u);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch (_) {
+    return false; // parsimatu string ei ole URL
+  }
+}
+
+/**
+ * TURVAPARANDUS: ID-parameetri valideerimine.
+ * SQL-süsti siin ei teki (kõik päringud on parameetriseeritud), aga
+ * mittenumbriline ID põhjustaks asjatu DB-päringu ja kohati segase 500-vea.
+ * Selge 400-vastus on nii turvalisem (vähem infot lekkimas) kui ka kasutajasõbralikum.
+ */
+function valiideeriId(req, res, next) {
+  if (!/^\d{1,10}$/.test(String(req.params.id))) {
+    return res.status(400).json({ viga: 'Vigane ID.' });
+  }
+  next();
+}
+
 function valideeriOlend(body) {
   const vead = [];
   if (!body.nimi || !body.nimi.trim()) vead.push('Olendi nimi on kohustuslik.');
@@ -192,13 +223,45 @@ function valideeriOlend(body) {
   if (body.kirjeldus && body.kirjeldus.length > 50000) vead.push('Kirjeldus on liiga pikk.');
   if (body.pilt_url && body.pilt_url.length > 1000) vead.push('Pildi URL on liiga pikk.');
   if (body.heli_url && body.heli_url.length > 1000) vead.push('Heli URL on liiga pikk.');
+
+  // TURVAPARANDUS: protokollikontroll — väldi javascript:/data: URL-e
+  if (!onTurvalineUrl(body.pilt_url)) vead.push('Pildi URL peab algama http:// või https://');
+  if (!onTurvalineUrl(body.heli_url)) vead.push('Heli URL peab algama http:// või https://');
+
+  // TURVAPARANDUS: alam-massiivide piirid. Varem võis üks päring sisaldada
+  // piiramatul hulgal asukohti/allikaid (kuni 1MB keha täis) — iga kirje
+  // tähendab eraldi INSERT-i. Mõistlik ülempiir tõkestab andmebaasi
+  // täispumpamise ühe päringuga.
+  const asukohad = Array.isArray(body.asukohad) ? body.asukohad : [];
+  const allikad = Array.isArray(body.allikad) ? body.allikad : [];
+  if (asukohad.length > 30) vead.push('Liiga palju asukohti (max 30).');
+  if (allikad.length > 30) vead.push('Liiga palju allikaid (max 30).');
+  asukohad.forEach((a) => {
+    if (a && a.kihelkond && String(a.kihelkond).length > 100) vead.push('Kihelkonna nimi on liiga pikk.');
+    if (a && a.maakond && String(a.maakond).length > 100) vead.push('Maakonna nimi on liiga pikk.');
+  });
+  allikad.forEach((s) => {
+    if (s && s.viide && String(s.viide).length > 500) vead.push('Allikaviide on liiga pikk (max 500).');
+    if (s && s.url && String(s.url).length > 1000) vead.push('Allika URL on liiga pikk.');
+    if (s && !onTurvalineUrl(s.url)) vead.push('Allika URL peab algama http:// või https://');
+  });
   return vead;
 }
 
 // --- Audit log ------------------------------------------------------------
+// TURVAPARANDUS: logisüsti tõkestamine. Kasutajanimi tuleb kasutaja käest —
+// kui see sisaldaks reavahetust (\n), saaks ründaja logisse "võltsida" terve
+// uue [AUDIT] rea ja varjata oma tegevust. Eemaldame kõik kontrollmärgid.
+function puhastaLogiks(s) {
+  return String(s == null ? '' : s).replace(/[\x00-\x1f\x7f]/g, ' ');
+}
+
 function auditLog(kasutaja, tegevus, üksikasjad) {
   const kellaaeg = new Date().toISOString();
-  const kasutajaInfo = kasutaja ? (kasutaja.kasutajanimi + '(roll:' + kasutaja.roll + ')') : 'anonüüm';
+  const kasutajaInfo = kasutaja
+    ? (puhastaLogiks(kasutaja.kasutajanimi) + '(roll:' + puhastaLogiks(kasutaja.roll) + ')')
+    : 'anonüüm';
+  // JSON.stringify kodeerib \n ja muud erimärgid ise — üksikasjad on ohutud.
   console.log('[AUDIT] ' + kellaaeg + ' | ' + kasutajaInfo + ' | ' + tegevus + ' | ' + JSON.stringify(üksikasjad));
 }
 
@@ -502,6 +565,14 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
   if (kasutajanimi.trim().length < 3 || kasutajanimi.trim().length > 50) {
     return res.status(400).json({ viga: 'Kasutajanimi peab olema 3–50 tähemärki.' });
   }
+  // TURVAPARANDUS: kasutajanime lubatud tähestik. Varem võis nimi sisaldada
+  // suvalisi märke (sh < > " ja kontrollmärke). Kuigi frontend esc()-ib kõik
+  // väljundid, on kaitse mitmekihilisus (defense in depth) põhimõte: kui üks
+  // kiht (esc) kunagi unustatakse, ei muutu nimi automaatselt XSS-kandjaks.
+  // Lubame ladina/eesti tähed, numbrid, punkti, alakriipsu ja sidekriipsu.
+  if (!/^[\p{L}\p{N}._-]+$/u.test(kasutajanimi.trim())) {
+    return res.status(400).json({ viga: 'Kasutajanimi tohib sisaldada ainult tähti, numbreid, punkti, ala- ja sidekriipsu.' });
+  }
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
     return res.status(400).json({ viga: 'E-posti aadress on vigane.' });
   }
@@ -605,7 +676,7 @@ app.get('/api/olendid', (req, res) => {
 });
 
 // Üks olend
-app.get('/api/olendid/:id', (req, res) => {
+app.get('/api/olendid/:id', valiideeriId, (req, res) => {
   const row = db.prepare('SELECT * FROM olendid WHERE id = ?').get(req.params.id);
   if (!row) return res.status(404).json({ viga: 'Olendit ei leitud.' });
   // Mustandeid näevad ainult toimetaja/admin
@@ -655,7 +726,7 @@ app.post('/api/olendid', authRequired, rollRequired('toimetaja', 'admin'), (req,
 });
 
 // Muuda olendit (toimetaja saab muuta enda oma, admin kõike)
-app.put('/api/olendid/:id', authRequired, rollRequired('toimetaja', 'admin'), (req, res) => {
+app.put('/api/olendid/:id', valiideeriId, authRequired, rollRequired('toimetaja', 'admin'), (req, res) => {
   const row = db.prepare('SELECT * FROM olendid WHERE id = ?').get(req.params.id);
   if (!row) return res.status(404).json({ viga: 'Olendit ei leitud.' });
   if (req.user.roll !== 'admin' && row.autor_id !== req.user.id) {
@@ -698,7 +769,7 @@ app.put('/api/olendid/:id', authRequired, rollRequired('toimetaja', 'admin'), (r
 });
 
 // Muuda staatust (ainult admin — modereerimine)
-app.patch('/api/olendid/:id/staatus', authRequired, rollRequired('admin'), (req, res) => {
+app.patch('/api/olendid/:id/staatus', valiideeriId, authRequired, rollRequired('admin'), (req, res) => {
   const { staatus } = req.body || {};
   const lubatud = ['avaldatud', 'mustand', 'modereerimisel'];
   if (!lubatud.includes(staatus)) {
@@ -712,7 +783,7 @@ app.patch('/api/olendid/:id/staatus', authRequired, rollRequired('admin'), (req,
 });
 
 // Kustuta olend (toimetaja enda, admin kõik)
-app.delete('/api/olendid/:id', authRequired, rollRequired('toimetaja', 'admin'), (req, res) => {
+app.delete('/api/olendid/:id', valiideeriId, authRequired, rollRequired('toimetaja', 'admin'), (req, res) => {
   const row = db.prepare('SELECT * FROM olendid WHERE id = ?').get(req.params.id);
   if (!row) return res.status(404).json({ viga: 'Olendit ei leitud.' });
   if (req.user.roll !== 'admin' && row.autor_id !== req.user.id) {
@@ -748,13 +819,19 @@ app.get('/api/lemmikud', authRequired, (req, res) => {
   res.json({ lemmikud: rows.map(olendTaielik) });
 });
 
-app.post('/api/lemmikud/:id', authRequired, (req, res) => {
+app.post('/api/lemmikud/:id', valiideeriId, authRequired, (req, res) => {
+  // TURVA/KVALITEEDIPARANDUS: kontrolli, et olend on olemas JA avaldatud.
+  // Varem kukkus olematu ID FOREIGN KEY veaga 500-ks (lekitab sisemist infot)
+  // ja sai lemmikuks lisada ka avaldamata mustandeid, mille olemasolu
+  // tavakasutaja teadma ei peaks (ID-de skaneerimine).
+  const olend = db.prepare("SELECT id FROM olendid WHERE id = ? AND staatus = 'avaldatud'").get(req.params.id);
+  if (!olend) return res.status(404).json({ viga: 'Olendit ei leitud.' });
   db.prepare('INSERT OR IGNORE INTO lemmikud (kasutaja_id, olend_id) VALUES (?, ?)')
     .run(req.user.id, req.params.id);
   res.json({ ok: true });
 });
 
-app.delete('/api/lemmikud/:id', authRequired, (req, res) => {
+app.delete('/api/lemmikud/:id', valiideeriId, authRequired, (req, res) => {
   db.prepare('DELETE FROM lemmikud WHERE kasutaja_id = ? AND olend_id = ?')
     .run(req.user.id, req.params.id);
   res.json({ ok: true });

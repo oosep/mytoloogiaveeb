@@ -26,14 +26,16 @@
     'Muud': '✶',
   };
 
+  // Sfääride värvid — maalähedane rahvapärane palett, mis sobitub
+  // veebi rohelis-pruuni disainiga, kuid hoiab sfäärid kaardil eristatavad.
   const SFAAR_COLORS = {
-    'Mets': '#2e7d32',
-    'Vesi': '#1565c0',
-    'Kodu': '#e65100',
-    'Ilm': '#388e3c',
-    'Kivid ja koopad': '#5d4037',
-    'Põrgu': '#6a1b9a',
-    'Muud': '#37474f',
+    'Mets': '#2e6b34',
+    'Vesi': '#22657e',
+    'Kodu': '#b3661e',
+    'Ilm': '#7c9a5a',
+    'Kivid ja koopad': '#5d4631',
+    'Põrgu': '#8a2f1d',
+    'Muud': '#4a5548',
   };
 
   const SFAAR_SVG = {
@@ -54,9 +56,10 @@
     sfaarid: [],
     kihelkonnad: [],       // GeoJSON property NIMI loend
     geojson: null,
-    map: null,
-    mapInited: false,
-    homeMap: null,
+    homeKaart: null,       // jagatud kaardi-instants (avaleht)
+    suurKaart: null,       // jagatud kaardi-instants (kaardileht)
+    sfaarFilter: new Set(),// avalehe sfäärifilter: tühi = näita kõiki
+    olendidCache: null,    // /api/olendid vahemälu kaartide markerite jaoks
     lemmikIds: new Set(),
   };
 
@@ -145,6 +148,7 @@
     try { await api('/auth/logout', { method: 'POST' }); } catch (_) {}
     state.kasutaja = null;
     state.lemmikIds = new Set();
+    state.olendidCache = null; // roll muutus -> /api/olendid vastus muutub
     renderNavAuth();
     toast('Oled välja logitud.');
     location.hash = '#/';
@@ -203,30 +207,41 @@
   //  V1 — AVALEHT
   // =========================================================================
   async function renderHome() {
-    // Sfäärid sidebar
+    // Sfäärid külgpaneelis = kaardi MARKERITE FILTRID.
+    // (Varem viis klõps olendite nimekirja — nüüd lülitab sfääri
+    //  kaardil sisse/välja. Tühi valik tähendab "näita kõiki".)
     const list = $('#sfaar-list');
     if (!list) return;
     list.innerHTML = state.sfaarid.map((s) => `
-      <div class="sfaar-item" data-sfaar="${esc(s)}">
-        <div class="sfaar-item-icon" style="background:${SFAAR_COLORS[s] || '#555'}">
+      <button type="button" class="sfaar-item ${state.sfaarFilter.has(s) ? 'active' : ''}"
+              data-sfaar="${esc(s)}" aria-pressed="${state.sfaarFilter.has(s)}">
+        <span class="sfaar-item-icon" style="--sf-color:${SFAAR_COLORS[s] || '#555'}">
           ${SFAAR_SVG[s] || ''}
-        </div>
+        </span>
         <span class="sfaar-item-name">${esc(s)}</span>
-      </div>`).join('');
+        <span class="sfaar-item-check" aria-hidden="true">✦</span>
+      </button>`).join('');
     $$('.sfaar-item', list).forEach((item) =>
       item.addEventListener('click', () => {
-        location.hash = '#/olendid?sfaar=' + encodeURIComponent(item.dataset.sfaar);
+        const sf = item.dataset.sfaar;
+        if (state.sfaarFilter.has(sf)) state.sfaarFilter.delete(sf);
+        else state.sfaarFilter.add(sf);
+        item.classList.toggle('active', state.sfaarFilter.has(sf));
+        item.setAttribute('aria-pressed', state.sfaarFilter.has(sf));
+        rakendaSfaarFilter();
       })
     );
 
-    // Kaart
-    initHomeMap();
+    // Kaart — TÄPSELT sama kaart mis kaardilehel (üks jagatud ehitaja)
+    if (state.homeKaart) state.homeKaart.resize();
+    else state.homeKaart = looKihelkonnaKaart({ container: 'home-map', panel: homePaneel() });
+    rakendaSfaarFilter();
 
     // Viimati lisatud olendid (kuni 5)
     const grid = $('#viimati-grid');
     try {
-      const d = await api('/olendid');
-      const valik = d.olendid.filter((o) => o.staatus === 'avaldatud').slice(0, 5);
+      const olendid = await laeOlendidCache();
+      const valik = olendid.filter((o) => o.staatus === 'avaldatud').slice(0, 5);
       if (!valik.length) {
         grid.innerHTML = '<p class="empty-msg">Avaldatud olendeid pole veel.</p>';
         return;
@@ -235,7 +250,7 @@
         <div class="viimati-card" data-id="${o.id}">
           <div class="viimati-card-img">
             ${o.pilt_url
-              ? `<img src="${esc(o.pilt_url)}" alt="${esc(o.nimi)}" onerror="this.parentElement.innerHTML='${MOUNTAIN_SVG}'">`
+              ? `<img src="${esc(o.pilt_url)}" alt="${esc(o.nimi)}" data-fallback="mountain">`
               : MOUNTAIN_SVG}
           </div>
           <div class="viimati-card-body">
@@ -260,57 +275,183 @@
     return n ? [x / n, y / n] : [25.0, 58.7];
   }
 
-  function initHomeMap() {
-    const el = document.getElementById('home-map');
-    if (!el) return;
+  // =========================================================================
+  //  JAGATUD KIHELKONNAKAART
+  //  -------------------------------------------------------------------
+  //  KOODIKVALITEET: varem oli kaks ~80% kattuvat funktsiooni
+  //  (initHomeMap + initMap), mis joonistasid ERINEVAD kaardid.
+  //  Nüüd on ÜKS ehitaja, mida kasutavad nii avaleht kui kaardileht —
+  //  mõlemad saavad garanteeritult samasuguse kaardi: kihelkondade
+  //  täidted, sildid, hover-esiletõste, klõpsatav külgpaneel JA
+  //  sfäärivärvilised olendimarkerid.
+  // =========================================================================
+  function looKihelkonnaKaart(opts) {
+    const el = document.getElementById(opts.container);
+    if (!el) return null;
     if (!MAPBOX_TOKEN || !state.geojson) {
-      el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#6b7280;font-size:15px;font-family:inherit;background:#f3f4f6;">Kaart pole saadaval</div>';
-      return;
+      el.innerHTML = '<div class="map-missing">Kaart pole saadaval</div>';
+      return null;
     }
-    if (state.homeMap) { setTimeout(() => state.homeMap.resize(), 50); return; }
 
     mapboxgl.accessToken = MAPBOX_TOKEN;
     const map = new mapboxgl.Map({
-      container: 'home-map',
-      style: 'mapbox://styles/mapbox/light-v11',
-      center: [25.0, 58.7],
-      zoom: 6.2,
+      container: opts.container,
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: [25.3, 58.65],
+      zoom: 6.3,
     });
-    state.homeMap = map;
+
+    const panel = opts.panel;
+    let lukus = false;
+    const markerid = []; // { marker, sfaar } — sfäärifiltri jaoks
+
+    const tõstaEsile = (nimi, op) =>
+      map.setPaintProperty('kih-fill', 'fill-opacity',
+        ['case', ['==', ['get', 'NIMI'], nimi], op, 0.22]);
+
+    function suljePaneel() {
+      lukus = false;
+      panel.root.classList.remove('visible', 'locked');
+      if (map.getLayer('kih-fill')) {
+        map.setPaintProperty('kih-fill', 'fill-opacity', 0.22);
+      }
+    }
 
     map.on('load', async () => {
       map.resize();
       map.addSource('kih', { type: 'geojson', data: state.geojson });
+
+      // Ajaloolised Eesti- ja Liivimaa kihelkonnad sügava metsapruuniga,
+      // muud alad kuldse "vana atlase" tooniga.
       map.addLayer({
         id: 'kih-fill', type: 'fill', source: 'kih',
-        paint: { 'fill-color': '#b8d8b0', 'fill-opacity': 0.55 },
+        paint: {
+          'fill-color': [
+            'case',
+            ['all',
+              ['!=', ['get', 'KUBERMANG'], 'Eestimaa'],
+              ['!=', ['get', 'KUBERMANG'], 'Liivimaa'],
+            ], '#c9a227',
+            '#5b4322',
+          ],
+          'fill-opacity': 0.22,
+        },
       });
       map.addLayer({
         id: 'kih-line', type: 'line', source: 'kih',
-        paint: { 'line-color': '#7aaa70', 'line-width': 0.6 },
+        paint: { 'line-color': '#3a2a12', 'line-width': 0.8 },
       });
+      map.addLayer({
+        id: 'kih-labels', type: 'symbol', source: 'kih',
+        layout: {
+          'text-field': ['get', 'NIMI'],
+          'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+          'text-size': 10, 'text-transform': 'uppercase', 'text-letter-spacing': 0.08,
+        },
+        paint: { 'text-color': '#3a2a12', 'text-halo-color': 'rgba(250,246,239,0.85)', 'text-halo-width': 1.2 },
+      });
+
+      // Hover-esiletõste
+      map.on('mousemove', 'kih-fill', (e) => {
+        if (lukus || !e.features.length) return;
+        map.getCanvas().style.cursor = 'pointer';
+        tõstaEsile(e.features[0].properties.NIMI, 0.5);
+      });
+      map.on('mouseleave', 'kih-fill', () => {
+        if (lukus) return;
+        map.getCanvas().style.cursor = '';
+        map.setPaintProperty('kih-fill', 'fill-opacity', 0.22);
+      });
+
+      // Klõps kihelkonnal → külgpaneel seotud olenditega
+      map.on('click', 'kih-fill', async (e) => {
+        const p = e.features[0].properties;
+        lukus = true;
+        panel.root.classList.add('visible', 'locked');
+        tõstaEsile(p.NIMI, 0.62);
+        await näitaKihelkond(p, panel);
+        e.originalEvent.stopPropagation();
+      });
+      map.on('click', (e) => {
+        const f = map.queryRenderedFeatures(e.point, { layers: ['kih-fill'] });
+        if (!f.length) suljePaneel();
+      });
+
+      // Olendimarkerid sfääri värviga — samad mõlemal kaardil
       try {
-        const d = await api('/olendid');
-        d.olendid
+        const olendid = await laeOlendidCache();
+        olendid
           .filter((o) => o.staatus === 'avaldatud' && o.asukohad && o.asukohad.length)
           .forEach((o) => {
             const feat = state.geojson.features.find((f) => f.properties.NIMI === o.asukohad[0].kihelkond);
             if (!feat) return;
-            const center = kihelkondKeskpunkt(feat);
-            new mapboxgl.Marker({ color: SFAAR_COLORS[o.sfaar] || '#555', scale: 0.85 })
-              .setLngLat(center)
+            const marker = new mapboxgl.Marker({ color: SFAAR_COLORS[o.sfaar] || '#555', scale: 0.85 })
+              .setLngLat(kihelkondKeskpunkt(feat))
               .setPopup(new mapboxgl.Popup({ offset: 25, closeButton: false })
-                .setHTML(`<strong>${esc(o.nimi)}</strong><br><small>${esc(o.sfaar)}</small>`))
+                .setHTML(
+                  `<strong>${esc(o.nimi)}</strong><br><small>${esc(o.sfaar)}</small>` +
+                  `<br><a href="#/olend/${Number(o.id)}">Vaata olendit →</a>`
+                ))
               .addTo(map);
+            markerid.push({ marker, sfaar: o.sfaar });
           });
-      } catch (_) {}
+      } catch (_) { /* markerite puudumine ei riku kaarti */ }
     });
+
+    panel.closeBtn.addEventListener('click', suljePaneel);
+
+    return {
+      map,
+      resize: () => setTimeout(() => map.resize(), 60),
+      /** Sfäärifilter: tühi Set või null = näita kõiki markereid. */
+      setSfaarFilter(valik) {
+        markerid.forEach(({ marker, sfaar }) => {
+          const näita = !valik || valik.size === 0 || valik.has(sfaar);
+          marker.getElement().style.display = näita ? '' : 'none';
+        });
+      },
+    };
+  }
+
+  /** Külgpaneelide elemendiviited — avaleht ja kaardileht omavad kumbki oma paneeli. */
+  const homePaneel = () => ({
+    root: $('#home-panel'), closeBtn: $('#home-panel-close'),
+    def: $('#home-panel-default'), det: $('#home-panel-detail'),
+    maakond: $('#hp-maakond'), nimi: $('#hp-nimi'), olendid: $('#hp-olendid'),
+  });
+  const kaartPaneel = () => ({
+    root: $('#map-panel'), closeBtn: $('#map-panel-close'),
+    def: $('#map-panel-default'), det: $('#map-panel-detail'),
+    maakond: $('#mp-maakond'), nimi: $('#mp-nimi'), olendid: $('#mp-olendid'),
+  });
+
+  /** Rakendab avalehe sfäärifiltri kaardile ja uuendab "Tühjenda" nuppu. */
+  function rakendaSfaarFilter() {
+    if (state.homeKaart) state.homeKaart.setSfaarFilter(state.sfaarFilter);
+    const reset = $('#sfaar-reset');
+    if (reset) reset.hidden = state.sfaarFilter.size === 0;
+  }
+
+  /**
+   * /api/olendid vahemälu: avaleht, mõlemad kaardid ja "viimati lisatud"
+   * jagavad üht vastust, selle asemel et sama päringut korrata.
+   * Vahemälu nullitakse sisu muutmisel ja sisse-/väljalogimisel.
+   */
+  async function laeOlendidCache() {
+    if (state.olendidCache) return state.olendidCache;
+    const d = await api('/olendid');
+    state.olendidCache = d.olendid;
+    return state.olendidCache;
   }
 
   // --- Olendi kaardi HTML --------------------------------------------------
   function olendKaartHTML(o) {
+    // TURVAPARANDUS: pildi varuvariant inline onerror-atribuudi asemel
+    // data-fallback atribuudiga (vt delegeeritud käsitlejat init()-is).
+    // See lubas CSP-st 'unsafe-inline' eemaldada — süstitud HTML-i
+    // sees olevad on*-atribuudid enam EI käivitu.
     const pilt = o.pilt_url
-      ? `<img src="${esc(o.pilt_url)}" alt="${esc(o.nimi)}" onerror="this.parentNode.innerHTML='<div class=\\'placeholder\\'>${SFAAR_IKOONID[o.sfaar] || '✶'}</div>'">`
+      ? `<img src="${esc(o.pilt_url)}" alt="${esc(o.nimi)}" data-fallback="${esc(SFAAR_IKOONID[o.sfaar] || '✶')}">`
       : `<div class="placeholder">${SFAAR_IKOONID[o.sfaar] || '✶'}</div>`;
     const tags = (o.asukohad || [])
       .slice(0, 2)
@@ -401,7 +542,7 @@
     }
 
     const pilt = o.pilt_url
-      ? `<div class="detail-img" id="detail-img"><img src="${esc(o.pilt_url)}" alt="${esc(o.nimi)}" onerror="this.parentNode.innerHTML='<div class=\\'placeholder\\'>${SFAAR_IKOONID[o.sfaar] || '✶'}</div>'"></div>`
+      ? `<div class="detail-img" id="detail-img"><img src="${esc(o.pilt_url)}" alt="${esc(o.nimi)}" data-fallback="${esc(SFAAR_IKOONID[o.sfaar] || '✶')}"></div>`
       : `<div class="detail-img"><div class="placeholder">${SFAAR_IKOONID[o.sfaar] || '✶'}</div></div>`;
 
     const heli = o.heli_url
@@ -492,11 +633,11 @@
       m.addLayer({
         id: 'kih-fill', type: 'fill', source: 'kih',
         paint: {
-          'fill-color': ['case', ['in', ['get', 'NIMI'], ['literal', [...nimed]]], '#8b4513', '#d4c5b0'],
+          'fill-color': ['case', ['in', ['get', 'NIMI'], ['literal', [...nimed]]], '#5b4322', '#d8ccb4'],
           'fill-opacity': ['case', ['in', ['get', 'NIMI'], ['literal', [...nimed]]], 0.65, 0.15],
         },
       });
-      m.addLayer({ id: 'kih-line', type: 'line', source: 'kih', paint: { 'line-color': '#4a2511', 'line-width': 0.6 } });
+      m.addLayer({ id: 'kih-line', type: 'line', source: 'kih', paint: { 'line-color': '#3a2a12', 'line-width': 0.6 } });
     });
   }
 
@@ -519,116 +660,24 @@
     $('#lightbox').hidden = false;
   }
 
-  // =========================================================================
-  //  KAART (täisvaade külgpaneeliga)
-  // =========================================================================
-  function initMap() {
-    if (state.mapInited) { setTimeout(() => state.map.resize(), 100); return; }
-    state.mapInited = true;
-    mapboxgl.accessToken = MAPBOX_TOKEN;
-    const map = new mapboxgl.Map({
-      container: 'map',
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [25.5, 58.6],
-      zoom: 6.6,
-    });
-    state.map = map;
-    let lukus = false;
-    const panel = $('#map-panel');
+  async function näitaKihelkond(p, panel) {
+    panel.def.hidden = true;
+    panel.det.hidden = false;
+    panel.maakond.textContent = (p.MAAKOND || '') + ' maakond';
+    panel.nimi.textContent = p.NIMI + ' kihelkond';
 
-    map.on('load', () => {
-      map.resize();
-      map.addSource('kihelkonnad', { type: 'geojson', data: state.geojson });
-
-      // Taustavärv — mitte-Eesti / puuduvad andmed kuldkollasega
-      map.addLayer({
-        id: 'kihelkonnad-fill', type: 'fill', source: 'kihelkonnad',
-        paint: {
-          'fill-color': [
-            'case',
-            ['all',
-              ['!=', ['get', 'KUBERMANG'], 'Eestimaa'],
-              ['!=', ['get', 'KUBERMANG'], 'Liivimaa'],
-            ], '#fbc02d',
-            '#8b4513',
-          ],
-          'fill-opacity': 0.2,
-        },
-      });
-      map.addLayer({
-        id: 'kihelkonnad-outline', type: 'line', source: 'kihelkonnad',
-        paint: { 'line-color': '#4a2511', 'line-width': 0.8 },
-      });
-      map.addLayer({
-        id: 'kihelkonnad-labels', type: 'symbol', source: 'kihelkonnad',
-        layout: {
-          'text-field': ['get', 'NIMI'],
-          'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
-          'text-size': 10, 'text-transform': 'uppercase', 'text-letter-spacing': 0.08,
-        },
-        paint: { 'text-color': '#4a2511', 'text-halo-color': 'rgba(255,255,255,0.85)', 'text-halo-width': 1.2 },
-      });
-
-      const tõstaEsile = (nimi, op) =>
-        map.setPaintProperty('kihelkonnad-fill', 'fill-opacity',
-          ['case', ['==', ['get', 'NIMI'], nimi], op, 0.2]);
-
-      map.on('mousemove', 'kihelkonnad-fill', (e) => {
-        if (lukus || !e.features.length) return;
-        map.getCanvas().style.cursor = 'pointer';
-        tõstaEsile(e.features[0].properties.NIMI, 0.45);
-      });
-      map.on('mouseleave', 'kihelkonnad-fill', () => {
-        if (lukus) return;
-        map.getCanvas().style.cursor = '';
-        map.setPaintProperty('kihelkonnad-fill', 'fill-opacity', 0.2);
-      });
-
-      map.on('click', 'kihelkonnad-fill', async (e) => {
-        const p = e.features[0].properties;
-        lukus = true;
-        panel.classList.add('visible', 'locked');
-        tõstaEsile(p.NIMI, 0.6);
-        await näitaKihelkond(p);
-        e.originalEvent.stopPropagation();
-      });
-
-      map.on('click', (e) => {
-        const f = map.queryRenderedFeatures(e.point, { layers: ['kihelkonnad-fill'] });
-        if (!f.length) suljeMapPanel();
-      });
-    });
-
-    $('#map-panel-close').addEventListener('click', suljeMapPanel);
-
-    function suljeMapPanel() {
-      lukus = false;
-      panel.classList.remove('visible', 'locked');
-      if (map.getLayer('kihelkonnad-fill')) {
-        map.setPaintProperty('kihelkonnad-fill', 'fill-opacity', 0.2);
-      }
-    }
-  }
-
-  async function näitaKihelkond(p) {
-    $('#map-panel-default').hidden = true;
-    $('#map-panel-detail').hidden = false;
-    $('#mp-maakond').textContent = (p.MAAKOND || '') + ' maakond';
-    $('#mp-nimi').textContent = p.NIMI + ' kihelkond';
-    $('#mp-kubermang').textContent = '';
-
-    const cont = $('#mp-olendid');
-    cont.innerHTML = '<p style="color:var(--ink-soft)">Laen olendeid…</p>';
+    const cont = panel.olendid;
+    cont.innerHTML = '<p class="mp-laen">Laen olendeid…</p>';
     try {
       const d = await api('/kihelkonnad/' + encodeURIComponent(p.NIMI) + '/olendid');
       if (!d.olendid.length) {
-        cont.innerHTML = '<p style="color:var(--ink-soft);font-style:italic">Selle kihelkonnaga pole veel olendeid seotud.</p>';
+        cont.innerHTML = '<p class="mp-tühi">Selle kihelkonnaga pole veel olendeid seotud.</p>';
         return;
       }
       cont.innerHTML = d.olendid.map((o) => `
-        <div class="mp-olend" data-id="${o.id}">
+        <div class="mp-olend" data-id="${Number(o.id)}">
           <div class="mp-olend-thumb">${o.pilt_url
-            ? `<img src="${esc(o.pilt_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:8px" onerror="this.replaceWith(document.createTextNode('${SFAAR_IKOONID[o.sfaar] || '✶'}'))">`
+            ? `<img src="${esc(o.pilt_url)}" alt="" data-fallback="${esc(SFAAR_IKOONID[o.sfaar] || '✶')}">`
             : (SFAAR_IKOONID[o.sfaar] || '✶')}</div>
           <div>
             <h4>${esc(o.nimi)}</h4>
@@ -639,7 +688,7 @@
         el.addEventListener('click', () => { location.hash = '#/olend/' + el.dataset.id; })
       );
     } catch (e) {
-      cont.innerHTML = `<p style="color:#b3261e">${esc(e.message)}</p>`;
+      cont.innerHTML = `<p class="mp-viga">${esc(e.message)}</p>`;
     }
   }
 
@@ -690,6 +739,7 @@
         const id = e.target.closest('tr').dataset.id;
         try {
           await api('/olendid/' + id + '/staatus', { method: 'PATCH', body: { staatus: e.target.value } });
+          state.olendidCache = null;
           toast('Staatus uuendatud.');
           renderAdmin();
         } catch (err) { toast(err.message, 'err'); }
@@ -701,6 +751,7 @@
         if (!confirm('Kas oled kindel, et soovid selle olendi kustutada?')) return;
         try {
           await api('/olendid/' + id, { method: 'DELETE' });
+          state.olendidCache = null;
           toast('Olend kustutatud.');
           renderAdmin();
         } catch (err) { toast(err.message, 'err'); }
@@ -979,7 +1030,10 @@
     switch (baas) {
       case '': await renderHome(); break;
       case 'olendid': await renderOlendid(params); break;
-      case 'kaart': initMap(); break;
+      case 'kaart':
+        if (state.suurKaart) state.suurKaart.resize();
+        else state.suurKaart = looKihelkonnaKaart({ container: 'map', panel: kaartPaneel() });
+        break;
       case 'olend': if (id) await renderDetail(id); break;
       case 'admin': await renderAdmin(); break;
       case 'profiil': await renderProfiil(); break;
@@ -995,6 +1049,32 @@
   //  SÜNDMUSTE SIDUMINE
   // =========================================================================
   function seoSündmused() {
+    // TURVAPARANDUS: ÜKS delegeeritud pildivea käsitleja kõigi inline
+    // onerror=""-atribuutide asemel. 'error' sündmus ei mulle (bubble),
+    // seega kuulame capture-faasis. Iga <img data-fallback="..."> saab
+    // ebaõnnestumisel varuvariandi. Tänu sellele sai CSP-st 'unsafe-inline'
+    // eemaldada: süstitud on*-atribuudid ei käivitu enam ÜLDSE.
+    document.addEventListener('error', (e) => {
+      const img = e.target;
+      if (!(img instanceof HTMLImageElement) || !img.dataset.fallback) return;
+      const holder = img.parentElement;
+      if (!holder) return;
+      holder.innerHTML = img.dataset.fallback === 'mountain'
+        ? MOUNTAIN_SVG
+        : `<div class="placeholder">${esc(img.dataset.fallback)}</div>`;
+    }, true);
+
+    // Sfäärifiltri tühjendamine (avalehe külgpaneel)
+    const sfReset = $('#sfaar-reset');
+    if (sfReset) sfReset.addEventListener('click', () => {
+      state.sfaarFilter.clear();
+      $$('#sfaar-list .sfaar-item').forEach((i) => {
+        i.classList.remove('active');
+        i.setAttribute('aria-pressed', 'false');
+      });
+      rakendaSfaarFilter();
+    });
+
     // Mobiilimenüü
     $('#nav-toggle').addEventListener('click', () => $('#nav-links').classList.toggle('open'));
 
@@ -1018,6 +1098,7 @@
           },
         });
         state.kasutaja = d.kasutaja;
+        state.olendidCache = null; // roll muutus -> /api/olendid vastus muutub
         await laeLemmikud();
         renderNavAuth();
         suljeAuthModal();
@@ -1125,6 +1206,7 @@
         let d;
         if (id) d = await api('/olendid/' + id, { method: 'PUT', body: keha });
         else d = await api('/olendid', { method: 'POST', body: keha });
+        state.olendidCache = null; // sisu muutus -> vahemälu aegus
         teade.className = 'vorm-teade ok';
         teade.textContent = id ? 'Olend salvestatud!' : 'Olend lisatud! ' +
           (state.kasutaja.roll === 'admin' ? 'Avaldatud.' : 'Saadetud modereerimisele.');
