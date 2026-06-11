@@ -161,6 +161,20 @@
     location.hash = '#/';
   }
 
+  // --- Turnstile CAPTCHA (explicit render) ----------------------------------
+  // Widget joonistatakse alles siis, kui MÕLEMAD on olemas: Cloudflare'i
+  // skript (onload-callback index.html-is) JA sitekey (/api/config vastusest).
+  let turnstileWidget = null;
+  function renderdaTurnstile() {
+    if (turnstileWidget !== null) return;                       // juba joonistatud
+    if (!window.turnstile || !state.turnstileSiteKey) return;   // midagi on veel puudu
+    const el = document.getElementById('reg-turnstile');
+    if (!el) return;
+    turnstileWidget = window.turnstile.render(el, { sitekey: state.turnstileSiteKey });
+  }
+  window._turnstileValmis = renderdaTurnstile;
+  if (window._turnstileOotel) renderdaTurnstile(); // api.js jõudis enne app.js-i
+
   // --- Auth modaal ---------------------------------------------------------
   function avaAuthModal(tab = 'login') {
     $('#auth-modal').hidden = false;
@@ -192,11 +206,7 @@
       const cfg = await api('/config');
       MAPBOX_TOKEN = cfg.mapboxToken || '';
       state.turnstileSiteKey = cfg.turnstileSiteKey || '';
-      // Sea CAPTCHA widgeti sitekey, kui see on serveris seadistatud
-      const tEl = document.getElementById('reg-turnstile');
-      if (tEl && state.turnstileSiteKey) {
-        tEl.setAttribute('data-sitekey', state.turnstileSiteKey);
-      }
+      renderdaTurnstile(); // sitekey on nüüd teada — proovi widget joonistada
     } catch (_) { /* kasutab tühja stringi, kaart näitab Mapboxi veateadet */ }
     try {
       const res = await fetch('kihelkond_1917.geojson');
@@ -1223,7 +1233,7 @@
         toast('Konto loodud! Oled sisse logitud.');
         router();
       } catch (err) {
-        if (window.turnstile) window.turnstile.reset('#reg-turnstile'); // lähtesta widget
+        if (window.turnstile && turnstileWidget !== null) window.turnstile.reset(turnstileWidget); // lähtesta widget
         authViga(err.message);
       }
     });

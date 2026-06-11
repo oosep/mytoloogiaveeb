@@ -17,8 +17,16 @@
 
   <link rel="stylesheet" href="style.css?v=4" />
 
-  <!-- Cloudflare Turnstile (CAPTCHA) — laaditakse asünkroonselt -->
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <!-- Cloudflare Turnstile (CAPTCHA) — explicit render, sest sitekey tuleb
+       serverist (/api/config) alles pärast app.js laadimist. Stub talub
+       mõlemat järjekorda (api.js võib laadida enne või pärast app.js-i). -->
+  <script>
+    window.turnstileValmis = function () {
+      if (window._turnstileValmis) window._turnstileValmis();
+      else window._turnstileOotel = true;
+    };
+  </script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=turnstileValmis" async defer></script>
 </head>
 <body>
 
