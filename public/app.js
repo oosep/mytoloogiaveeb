@@ -193,20 +193,84 @@
       'nousolek-viga': 'You must agree to the privacy policy and terms of use.',
       'legal-en-note': 'These legal texts are currently available only in Estonian.',
     },
+    ru: {
+      'nav-avaleht': 'Главная', 'nav-sisu': 'Контент', 'nav-kaart': 'Карта',
+      'nav-info': 'Информация', 'nav-lisa': 'Добавить контент', 'nav-haldus': 'Управление',
+      'otsi-ph': 'Поиск...',
+      'home-sisu': 'Контент', 'home-tyhjenda': 'Очистить',
+      'home-vihje': 'Выберите категорию, чтобы отфильтровать существ на карте.',
+      'kaart-h2': 'Приходы Эстонии, 1917',
+      'kaart-p': 'Наведите курсор на приход и нажмите, чтобы увидеть связанных с ним мифологических существ.',
+      'kaart-seotud': 'Связанные существа', 'kaart-puudub': 'Карта недоступна',
+      'vaata-olendit': 'Смотреть существо →',
+      'home-viimati': 'Недавно добавленные существа', 'home-vaata': 'Смотреть все →',
+      'jalus-rida': 'Таллиннский университет · 2026 · фольклор связан с приходами 1917 года',
+      'jalus-privaatsus': 'Политика конфиденциальности', 'jalus-tingimused': 'Условия использования',
+      'olendid-h1': 'Список контента', 'olendid-p': 'Фильтруйте и сортируйте эстонских мифологических существ.',
+      'f-otsing-ph': 'Поиск по имени…', 'f-koik-sfaarid': 'Все категории',
+      'f-koik-kihelkonnad': 'Все приходы',
+      'sort-az': 'Имя А→Я', 'sort-za': 'Имя Я→А', 'sort-sfaar': 'По категории',
+      'olendid-tyhi': 'Существа не найдены.',
+      'tagasi': '← Назад', 'laen': 'Загрузка…',
+      'tyhi-avaldatud': 'Опубликованных существ пока нет.', 'viga-laadimine': 'Не удалось загрузить существ.',
+      'detail-heli': 'Народное предание (аудио)', 'detail-allikad': 'Источники', 'detail-asukohad': 'Места',
+      'detail-sarnane': 'Похожий контент', 'kirjeldus-puudub': 'Описание отсутствует.',
+      'fav-on': '★ В избранном', 'fav-off': '☆ В избранное', 'btn-muuda': 'Редактировать',
+      'maakond-j': ' (уезд)', 'kihelkond-j': ' (приход)',
+      'laen-olendeid': 'Загружаю существ…', 'kih-tyhi': 'С этим приходом пока не связано ни одного существа.',
+      'admin-h1': 'Панель управления', 'admin-p': 'Управляйте контентом, утверждайте записи на модерации и меняйте статусы.',
+      'admin-ainult': 'Панель управления доступна только администраторам.',
+      'th-nimi': 'Имя', 'th-sfaar': 'Категория', 'th-autor': 'Автор', 'th-staatus': 'Статус', 'th-tegevused': 'Действия',
+      'stat-kokku': 'Всего', 'stat-avaldatud': 'Опубликовано', 'stat-modereerimisel': 'На модерации', 'stat-mustand': 'Черновик',
+      'btn-kustuta': 'Удалить', 'kinnita-kustuta': 'Вы уверены, что хотите удалить эту запись?',
+      'staatus-uuendatud': 'Статус обновлён.', 'olend-kustutatud': 'Запись удалена.',
+      'profiil-h1': 'Мой профиль', 'profiil-lemmikud': 'Моё избранное',
+      'profiil-tyhi': 'У вас пока нет избранного. Добавьте на странице существа ☆.', 'roll': 'Роль',
+      'vorm-uus': 'Добавить новый контент', 'vorm-muuda': 'Редактировать: ',
+      'vorm-ligipaas': 'Чтобы добавлять контент, войдите как редактор или администратор.',
+      'lbl-nimi': 'Имя *', 'lbl-sfaar': 'Категория *', 'lbl-kirjeldus': 'Описание',
+      'vorm-nimi-ph': 'напр. Näkk', 'vorm-kirjeldus-ph': 'Предания, свойства и истории существа…',
+      'lbl-pilt': 'Изображение (JPG, PNG или WEBP, макс. 5 МБ)', 'lbl-heli': 'Аудио (MP3, WAV, M4A или OGG, макс. 20 МБ / 10 мин)',
+      'blk-asukohad': 'Места (приходы)', 'blk-allikad': 'Ссылки на источники',
+      'btn-lisa-asukoht': '+ Добавить место', 'btn-lisa-viide': '+ Добавить источник', 'btn-salvesta': 'Сохранить',
+      'vali-kihelkond': '— Выберите приход —', 'ph-allika-nimi': 'Название источника', 'ph-allika-url': 'URL (необязательно)',
+      'eemalda': 'Убрать', 'laen-yles': 'Загружаю: ', 'fail-yles': 'Файл загружен.',
+      'fail-suur': 'Файл слишком большой', 'pilt-salvestatud': '✓ Изображение сохранено.', 'heli-salvestatud': '✓ Аудио сохранено.',
+      'salvestatud': 'Сохранено.', 'olend-salvestatud': 'Сохранено!',
+      'olend-lisatud': 'Добавлено! ', 'avaldatud-kohe': 'Опубликовано.', 'modereerimisele': 'Отправлено на модерацию.',
+      'auth-tab-login': 'Войти', 'auth-tab-register': 'Создать аккаунт', 'btn-login': 'Войти',
+      'btn-valja': 'Выйти', 'valja-logitud': 'Вы вышли из системы.',
+      'lbl-kasutajanimi-email': 'Имя пользователя или email', 'lbl-parool': 'Пароль',
+      'lbl-kasutajanimi': 'Имя пользователя', 'lbl-email': 'Email', 'lbl-parool8': 'Пароль (мин. 8 символов)',
+      'consent-html': 'Я прочитал(а) и согласен(на) с <a href="#/privaatsus" data-nav target="_blank">политикой конфиденциальности</a> и <a href="#/tingimused" data-nav target="_blank">условиями использования</a>.',
+      'btn-register': 'Зарегистрироваться', 'tere': 'Добро пожаловать, ', 'konto-loodud': 'Аккаунт создан! Вы вошли в систему.',
+      'nousolek-viga': 'Необходимо согласиться с политикой конфиденциальности и условиями использования.',
+      'legal-en-note': 'Эти юридические тексты пока доступны только на эстонском языке.',
+    },
   };
 
   // Kategooriate (sfääride) ja staatuste KUVAnimed — andmebaasi väärtus
   // jääb alati eestikeelseks, tõlgitakse ainult ekraanil.
-  const SFAAR_EN = {
-    'Mets': 'Forest', 'Vesi': 'Water', 'Kodu': 'Home', 'Ilm': 'Weather',
-    'Kivid ja koopad': 'Rocks and caves', 'Põrgu': 'Underworld', 'Muud': 'Other',
+  const SFAAR_NIMED = {
+    en: {
+      'Mets': 'Forest', 'Vesi': 'Water', 'Kodu': 'Home', 'Ilm': 'Weather',
+      'Kivid ja koopad': 'Rocks and caves', 'Põrgu': 'Underworld', 'Muud': 'Other',
+    },
+    ru: {
+      'Mets': 'Лес', 'Vesi': 'Вода', 'Kodu': 'Дом', 'Ilm': 'Погода',
+      'Kivid ja koopad': 'Камни и пещеры', 'Põrgu': 'Преисподняя', 'Muud': 'Другое',
+    },
   };
-  const STAATUS_EN = { 'avaldatud': 'published', 'modereerimisel': 'in review', 'mustand': 'draft' };
+  const STAATUS_NIMED = {
+    en: { 'avaldatud': 'published', 'modereerimisel': 'in review', 'mustand': 'draft' },
+    ru: { 'avaldatud': 'опубликовано', 'modereerimisel': 'на модерации', 'mustand': 'черновик' },
+  };
 
-  state.keel = localStorage.getItem('keel') === 'en' ? 'en' : 'et';
+  const KEELED = ['et', 'en', 'ru'];
+  state.keel = KEELED.includes(localStorage.getItem('keel')) ? localStorage.getItem('keel') : 'et';
   const t = (k) => (TOLKED[state.keel] && TOLKED[state.keel][k]) ?? TOLKED.et[k] ?? k;
-  const sfaarNimi = (s) => (state.keel === 'en' ? (SFAAR_EN[s] || s) : s);
-  const staatusNimi = (s) => (state.keel === 'en' ? (STAATUS_EN[s] || s) : s);
+  const sfaarNimi = (s) => (SFAAR_NIMED[state.keel] && SFAAR_NIMED[state.keel][s]) || s;
+  const staatusNimi = (s) => (STAATUS_NIMED[state.keel] && STAATUS_NIMED[state.keel][s]) || s;
 
   /** Rakendab valitud keele kõigile data-i18n märgistega elementidele. */
   function rakendaKeel() {
@@ -217,6 +281,9 @@
     $$('[data-i18n-html]').forEach((el) => { el.innerHTML = t(el.dataset.i18nHtml); });
     const lb = $('#lang-btn');
     if (lb) lb.textContent = state.keel.toUpperCase() + ' ▾';
+    $$('#lang-list button').forEach((b) =>
+      b.classList.toggle('active', b.dataset.keel === state.keel)
+    );
   }
 
   // --- API abifunktsioon ---------------------------------------------------
@@ -1320,14 +1387,31 @@
       rakendaSfaarFilter();
     });
 
-    // Keelevahetus (ET ↔ EN) — valik salvestatakse localStorage'i
-    $('#lang-btn').addEventListener('click', () => {
-      state.keel = state.keel === 'et' ? 'en' : 'et';
-      try { localStorage.setItem('keel', state.keel); } catch (_) { /* privaatrežiim */ }
-      rakendaKeel();
-      renderNavAuth();
-      router(); // joonista aktiivne vaade uues keeles uuesti
+    // Keelevahetus — rippmenüü (ET / EN / RU), valik salvestatakse localStorage'i
+    const langBtn = $('#lang-btn');
+    const langList = $('#lang-list');
+    const suljeLangList = () => {
+      langList.hidden = true;
+      langBtn.setAttribute('aria-expanded', 'false');
+    };
+    langBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const avaks = langList.hidden;
+      langList.hidden = !avaks;
+      langBtn.setAttribute('aria-expanded', String(avaks));
     });
+    document.addEventListener('click', suljeLangList);
+    $$('#lang-list button').forEach((b) =>
+      b.addEventListener('click', () => {
+        suljeLangList();
+        if (b.dataset.keel === state.keel) return;
+        state.keel = b.dataset.keel;
+        try { localStorage.setItem('keel', state.keel); } catch (_) { /* privaatrežiim */ }
+        rakendaKeel();
+        renderNavAuth();
+        router(); // joonista aktiivne vaade uues keeles uuesti
+      })
+    );
 
     // Mobiilimenüü
     $('#nav-toggle').addEventListener('click', () => $('#nav-links').classList.toggle('open'));

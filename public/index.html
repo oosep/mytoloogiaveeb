@@ -15,7 +15,7 @@
   <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css" rel="stylesheet" />
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js"></script>
 
-  <link rel="stylesheet" href="style.css?v=4" />
+  <link rel="stylesheet" href="style.css?v=5" />
 
   <!-- Cloudflare Turnstile (CAPTCHA) — explicit render, sest sitekey tuleb
        serverist (/api/config) alles pärast app.js laadimist. Stub talub
@@ -60,7 +60,15 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="16" height="16"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       </button>
     </form>
-    <button class="lang-btn" type="button" id="lang-btn">ET &#9662;</button>
+    <!-- Keelevalik — rippmenüü (ET / EN / RU) -->
+    <div class="lang-menu" id="lang-menu">
+      <button class="lang-btn" type="button" id="lang-btn" aria-haspopup="listbox" aria-expanded="false">ET &#9662;</button>
+      <div class="lang-list" id="lang-list" role="listbox" hidden>
+        <button type="button" data-keel="et" role="option">Eesti</button>
+        <button type="button" data-keel="en" role="option">English</button>
+        <button type="button" data-keel="ru" role="option">Русский</button>
+      </div>
+    </div>
   </header>
 
   <!-- ================= VAATED (V1–V6) ================= -->
