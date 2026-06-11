@@ -41,6 +41,7 @@ function turvapaised(req, res, next) {
       "script-src 'self' https://api.mapbox.com https://challenges.cloudflare.com",
       "style-src 'self' 'unsafe-inline' https://api.mapbox.com https://fonts.googleapis.com",
       "img-src 'self' data: https:",
+      "media-src 'self' https:",
       "font-src 'self' https://fonts.gstatic.com",
       "connect-src 'self' https://api.mapbox.com https://events.mapbox.com",
       "frame-src https://challenges.cloudflare.com",
@@ -65,8 +66,13 @@ function turvapaised(req, res, next) {
 // Tagastab true/false. Kui salavõti puudub (arendus), möödub kontrollist.
 async function verifyTurnstile(token, remoteip) {
   const secret = process.env.TURNSTILE_SECRET_KEY;
-  // Arenduses ilma võtmeta: ära blokeeri (aga logi hoiatus)
   if (!secret) {
+    // TOOTMISES peab puuduv võti tähendama "ei lase läbi" (fail closed) —
+    // muidu jääks bottide tõkestus vaikimisi välja lülitatuks.
+    if (process.env.NODE_ENV === 'production') {
+      console.error('❌  TURNSTILE_SECRET_KEY puudub tootmises — CAPTCHA kontroll EI lase kedagi läbi.');
+      return false;
+    }
     console.warn('⚠️  TURNSTILE_SECRET_KEY puudub — CAPTCHA kontroll vahele jäetud (ainult arendus!)');
     return true;
   }
