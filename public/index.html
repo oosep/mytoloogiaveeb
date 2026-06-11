@@ -45,22 +45,22 @@
     </button>
 
     <nav class="nav-links" id="nav-links">
-      <a href="#/" data-nav>Avaleht</a>
-      <a href="#/olendid" data-nav>Sfäärid</a>
-      <a href="#/kaart" data-nav>Kaart</a>
-      <a href="#/info" data-nav>Lisainfo</a>
-      <a href="#/lisa" data-nav data-roll="toimetaja,admin">Lisa olend</a>
-      <a href="#/admin" data-nav data-roll="admin">Haldus</a>
+      <a href="#/" data-nav data-i18n="nav-avaleht">Avaleht</a>
+      <a href="#/olendid" data-nav data-i18n="nav-sisu">Sisu</a>
+      <a href="#/kaart" data-nav data-i18n="nav-kaart">Kaart</a>
+      <a href="#/info" data-nav data-i18n="nav-info">Lisainfo</a>
+      <a href="#/lisa" data-nav data-roll="toimetaja,admin" data-i18n="nav-lisa">Lisa sisu</a>
+      <a href="#/admin" data-nav data-roll="admin" data-i18n="nav-haldus">Haldus</a>
       <div class="nav-auth" id="nav-auth"></div>
     </nav>
 
     <form class="navbar-search" id="navbar-search" autocomplete="off">
-      <input type="search" id="navbar-search-input" placeholder="Otsi..." aria-label="Otsi" />
+      <input type="search" id="navbar-search-input" placeholder="Otsi..." aria-label="Otsi" data-i18n-ph="otsi-ph" />
       <button type="submit" class="navbar-search-btn" aria-label="Otsi">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="16" height="16"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       </button>
     </form>
-    <button class="lang-btn" type="button">ET &#9662;</button>
+    <button class="lang-btn" type="button" id="lang-btn">ET &#9662;</button>
   </header>
 
   <!-- ================= VAATED (V1–V6) ================= -->
@@ -71,10 +71,10 @@
       <div class="home-layout">
         <aside class="sfaar-sidebar">
           <div class="sfaar-sidebar-head">
-            <h2 class="sfaar-sidebar-title">Sfäärid</h2>
-            <button class="sfaar-reset" id="sfaar-reset" hidden type="button">Tühjenda</button>
+            <h2 class="sfaar-sidebar-title" data-i18n="home-sisu">Sisu</h2>
+            <button class="sfaar-reset" id="sfaar-reset" hidden type="button" data-i18n="home-tyhjenda">Tühjenda</button>
           </div>
-          <p class="sfaar-sidebar-hint">Vali sfäär, et filtreerida olendeid kaardil.</p>
+          <p class="sfaar-sidebar-hint" data-i18n="home-vihje">Vali kategooria, et filtreerida olendeid kaardil.</p>
           <div id="sfaar-list" role="group" aria-label="Sfääride filter"><!-- JS --></div>
           <div class="sidebar-ornament" aria-hidden="true">✶ ✦ ✶</div>
         </aside>
@@ -84,13 +84,13 @@
           <aside class="map-panel" id="home-panel">
             <button class="map-panel-close" id="home-panel-close" aria-label="Sulge">&times;</button>
             <div id="home-panel-default">
-              <h2>Eesti kihelkonnad 1917</h2>
-              <p>Liiguta hiir kihelkonna kohale ja klõpsa, et näha sellega seotud mütoloogilisi olendeid.</p>
+              <h2 data-i18n="kaart-h2">Eesti kihelkonnad 1917</h2>
+              <p data-i18n="kaart-p">Liiguta hiir kihelkonna kohale ja klõpsa, et näha sellega seotud mütoloogilisi olendeid.</p>
             </div>
             <div id="home-panel-detail" hidden>
               <span class="map-panel-maakond" id="hp-maakond"></span>
               <h2 id="hp-nimi">Kihelkond</h2>
-              <h3 class="map-panel-subtitle">Seotud olendid</h3>
+              <h3 class="map-panel-subtitle" data-i18n="kaart-seotud">Seotud olendid</h3>
               <div id="hp-olendid"></div>
             </div>
           </aside>
@@ -99,8 +99,8 @@
 
       <section class="viimati-section">
         <div class="viimati-header">
-          <h2 class="viimati-title">Viimati lisatud olendid</h2>
-          <a href="#/olendid" data-nav class="vaata-koiki">Vaata kõiki &rarr;</a>
+          <h2 class="viimati-title" data-i18n="home-viimati">Viimati lisatud olendid</h2>
+          <a href="#/olendid" data-nav class="vaata-koiki" data-i18n="home-vaata">Vaata kõiki &rarr;</a>
         </div>
         <div class="viimati-grid" id="viimati-grid"><!-- JS --></div>
       </section>
@@ -108,10 +108,10 @@
       <footer class="site-footer">
         <div class="footer-ornament" aria-hidden="true">✶ &nbsp;✦&nbsp; ✶</div>
         <p class="footer-brand">Eesti Mütoloogiaveeb</p>
-        <p>Tallinna Ülikool &middot; 2026 &middot; pärimus on seotud 1917. aasta kihelkondadega</p>
+        <p data-i18n="jalus-rida">Tallinna Ülikool &middot; 2026 &middot; pärimus on seotud 1917. aasta kihelkondadega</p>
         <p class="footer-links">
-          <a href="#/privaatsus" data-nav>Privaatsuspoliitika</a> &middot;
-          <a href="#/tingimused" data-nav>Kasutustingimused</a>
+          <a href="#/privaatsus" data-nav data-i18n="jalus-privaatsus">Privaatsuspoliitika</a> &middot;
+          <a href="#/tingimused" data-nav data-i18n="jalus-tingimused">Kasutustingimused</a>
         </p>
       </footer>
     </section>
@@ -119,28 +119,28 @@
     <!-- V2 — OLENDITE NIMEKIRI -->
     <section class="view" id="view-olendid" hidden>
       <div class="page-head">
-        <h1>Olendite nimekiri</h1>
-        <p>Filtreeri ja sorteeri Eesti mütoloogilisi olendeid.</p>
+        <h1 data-i18n="olendid-h1">Sisu nimekiri</h1>
+        <p data-i18n="olendid-p">Filtreeri ja sorteeri Eesti mütoloogilisi olendeid.</p>
       </div>
 
       <div class="filters" id="olendid-filters">
-        <input type="search" id="f-otsing" placeholder="Otsi nime järgi…" />
-        <select id="f-sfaar"><option value="">Kõik sfäärid</option></select>
+        <input type="search" id="f-otsing" placeholder="Otsi nime järgi…" data-i18n-ph="f-otsing-ph" />
+        <select id="f-sfaar"><option value="">Kõik kategooriad</option></select>
         <select id="f-kihelkond"><option value="">Kõik kihelkonnad</option></select>
         <select id="f-sort">
-          <option value="nimi-asc">Nimi A→Ü</option>
-          <option value="nimi-desc">Nimi Ü→A</option>
-          <option value="sfaar">Sfääri järgi</option>
+          <option value="nimi-asc" data-i18n="sort-az">Nimi A→Ü</option>
+          <option value="nimi-desc" data-i18n="sort-za">Nimi Ü→A</option>
+          <option value="sfaar" data-i18n="sort-sfaar">Kategooria järgi</option>
         </select>
       </div>
 
       <div class="olend-grid" id="olend-grid"><!-- JS --></div>
-      <p class="empty-msg" id="olendid-empty" hidden>Ühtegi olendit ei leitud.</p>
+      <p class="empty-msg" id="olendid-empty" hidden data-i18n="olendid-tyhi">Ühtegi olendit ei leitud.</p>
     </section>
 
     <!-- V3 — OLENDI DETAILVAADE -->
     <section class="view" id="view-detail" hidden>
-      <button class="back-link" data-back>← Tagasi</button>
+      <button class="back-link" data-back data-i18n="tagasi">← Tagasi</button>
       <div id="detail-content"><!-- JS --></div>
     </section>
 
@@ -150,13 +150,13 @@
       <aside class="map-panel" id="map-panel">
         <button class="map-panel-close" id="map-panel-close" aria-label="Sulge">&times;</button>
         <div id="map-panel-default">
-          <h2>Eesti Kihelkonnad 1917</h2>
-          <p>Liiguta hiir kihelkonna kohale ja klõpsa, et näha sellega seotud mütoloogilisi olendeid.</p>
+          <h2 data-i18n="kaart-h2">Eesti kihelkonnad 1917</h2>
+          <p data-i18n="kaart-p">Liiguta hiir kihelkonna kohale ja klõpsa, et näha sellega seotud mütoloogilisi olendeid.</p>
         </div>
         <div id="map-panel-detail" hidden>
           <span class="map-panel-maakond" id="mp-maakond"></span>
           <h2 id="mp-nimi">Kihelkond</h2>
-          <h3 class="map-panel-subtitle">Seotud olendid</h3>
+          <h3 class="map-panel-subtitle" data-i18n="kaart-seotud">Seotud olendid</h3>
           <div id="mp-olendid"></div>
         </div>
       </aside>
@@ -165,14 +165,14 @@
     <!-- V4 — ADMIN HALDUSVAADE -->
     <section class="view" id="view-admin" hidden>
       <div class="page-head">
-        <h1>Halduslaud</h1>
-        <p>Halda olendeid, kinnita modereerimisel sisu ja muuda staatusi.</p>
+        <h1 data-i18n="admin-h1">Halduslaud</h1>
+        <p data-i18n="admin-p">Halda sisu, kinnita modereerimisel kirjed ja muuda staatusi.</p>
       </div>
       <div class="admin-stats" id="admin-stats"><!-- JS --></div>
       <div class="table-wrap">
         <table class="admin-table">
           <thead>
-            <tr><th>Nimi</th><th>Sfäär</th><th>Autor</th><th>Staatus</th><th>Tegevused</th></tr>
+            <tr><th data-i18n="th-nimi">Nimi</th><th data-i18n="th-sfaar">Kategooria</th><th data-i18n="th-autor">Autor</th><th data-i18n="th-staatus">Staatus</th><th data-i18n="th-tegevused">Tegevused</th></tr>
           </thead>
           <tbody id="admin-tbody"><!-- JS --></tbody>
         </table>
@@ -181,31 +181,31 @@
 
     <!-- V5 — KASUTAJA PROFIIL -->
     <section class="view" id="view-profiil" hidden>
-      <div class="page-head"><h1>Minu profiil</h1></div>
+      <div class="page-head"><h1 data-i18n="profiil-h1">Minu profiil</h1></div>
       <div class="profiil-card" id="profiil-card"><!-- JS --></div>
-      <h2 class="profiil-sub">Minu lemmikud</h2>
+      <h2 class="profiil-sub" data-i18n="profiil-lemmikud">Minu lemmikud</h2>
       <div class="olend-grid" id="lemmik-grid"><!-- JS --></div>
-      <p class="empty-msg" id="lemmik-empty" hidden>Sul pole veel lemmikuid. Lisa olendi vaates ☆.</p>
+      <p class="empty-msg" id="lemmik-empty" hidden data-i18n="profiil-tyhi">Sul pole veel lemmikuid. Lisa olendi vaates ☆.</p>
     </section>
 
     <!-- V6 — SISU LISAMISE / MUUTMISE VORM -->
     <section class="view" id="view-vorm" hidden>
-      <button class="back-link" data-back>← Tagasi</button>
-      <div class="page-head"><h1 id="vorm-pealkiri">Lisa uus olend</h1></div>
+      <button class="back-link" data-back data-i18n="tagasi">← Tagasi</button>
+      <div class="page-head"><h1 id="vorm-pealkiri">Lisa uus sisu</h1></div>
       <form class="olend-vorm" id="olend-vorm" autocomplete="off">
         <input type="hidden" id="vorm-id" />
 
         <div class="vorm-row">
-          <label>Nimi *
-            <input type="text" id="vorm-nimi" required placeholder="nt Näkk" />
+          <label><span data-i18n="lbl-nimi">Nimi *</span>
+            <input type="text" id="vorm-nimi" required placeholder="nt Näkk" data-i18n-ph="vorm-nimi-ph" />
           </label>
-          <label>Sfäär *
+          <label><span data-i18n="lbl-sfaar">Kategooria *</span>
             <select id="vorm-sfaar" required></select>
           </label>
         </div>
 
-        <label>Kirjeldus
-          <textarea id="vorm-kirjeldus" rows="6" placeholder="Olendi pärimus, omadused ja lood…"></textarea>
+        <label><span data-i18n="lbl-kirjeldus">Kirjeldus</span>
+          <textarea id="vorm-kirjeldus" rows="6" placeholder="Olendi pärimus, omadused ja lood…" data-i18n-ph="vorm-kirjeldus-ph"></textarea>
         </label>
 
         <!-- Failid laaditakse üles turvalise API kaudu (/api/failid);
@@ -213,10 +213,10 @@
         <input type="hidden" id="vorm-pilt" />
         <input type="hidden" id="vorm-heli" />
         <div class="vorm-row">
-          <label>Pilt (JPG, PNG või WEBP, max 5 MB)
+          <label><span data-i18n="lbl-pilt">Pilt (JPG, PNG või WEBP, max 5 MB)</span>
             <input type="file" id="vorm-pilt-fail" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
           </label>
-          <label>Heli (MP3, WAV, M4A või OGG, max 20 MB / 10 min)
+          <label><span data-i18n="lbl-heli">Heli (MP3, WAV, M4A või OGG, max 20 MB / 10 min)</span>
             <input type="file" id="vorm-heli-fail" accept=".mp3,.wav,.m4a,.ogg,audio/mpeg,audio/wav,audio/mp4,audio/ogg" />
           </label>
         </div>
@@ -227,22 +227,22 @@
 
         <div class="vorm-block">
           <div class="vorm-block-head">
-            <span>Asukohad (kihelkonnad)</span>
-            <button type="button" class="btn-small" id="lisa-asukoht">+ Lisa asukoht</button>
+            <span data-i18n="blk-asukohad">Asukohad (kihelkonnad)</span>
+            <button type="button" class="btn-small" id="lisa-asukoht" data-i18n="btn-lisa-asukoht">+ Lisa asukoht</button>
           </div>
           <div id="asukoht-list"></div>
         </div>
 
         <div class="vorm-block">
           <div class="vorm-block-head">
-            <span>Allikaviited</span>
-            <button type="button" class="btn-small" id="lisa-viide">+ Lisa viide</button>
+            <span data-i18n="blk-allikad">Allikaviited</span>
+            <button type="button" class="btn-small" id="lisa-viide" data-i18n="btn-lisa-viide">+ Lisa viide</button>
           </div>
           <div id="viide-list"></div>
         </div>
 
         <div class="vorm-actions">
-          <button type="submit" class="btn btn-primary" id="vorm-salvesta">Salvesta olend</button>
+          <button type="submit" class="btn btn-primary" id="vorm-salvesta" data-i18n="btn-salvesta">Salvesta</button>
           <p class="vorm-teade" id="vorm-teade"></p>
         </div>
       </form>
@@ -250,13 +250,13 @@
 
     <!-- V7 — PRIVAATSUSPOLIITIKA -->
     <section class="view" id="view-privaatsus" hidden>
-      <div class="page-head"><h1>Privaatsuspoliitika</h1></div>
+      <div class="page-head"><h1 data-i18n="jalus-privaatsus">Privaatsuspoliitika</h1></div>
       <article class="legal-page" id="legal-privaatsus"><!-- JS täidab --></article>
     </section>
 
     <!-- V8 — KASUTUSTINGIMUSED -->
     <section class="view" id="view-tingimused" hidden>
-      <div class="page-head"><h1>Kasutustingimused</h1></div>
+      <div class="page-head"><h1 data-i18n="jalus-tingimused">Kasutustingimused</h1></div>
       <article class="legal-page" id="legal-tingimused"><!-- JS täidab --></article>
     </section>
 
@@ -270,35 +270,35 @@
     <div class="modal-box auth-box">
       <button class="modal-close" data-close-modal aria-label="Sulge">&times;</button>
       <div class="auth-tabs">
-        <button class="auth-tab active" data-tab="login">Logi sisse</button>
-        <button class="auth-tab" data-tab="register">Loo konto</button>
+        <button class="auth-tab active" data-tab="login" data-i18n="auth-tab-login">Logi sisse</button>
+        <button class="auth-tab" data-tab="register" data-i18n="auth-tab-register">Loo konto</button>
       </div>
 
       <form id="form-login" class="auth-form">
-        <label>Kasutajanimi või email
+        <label><span data-i18n="lbl-kasutajanimi-email">Kasutajanimi või email</span>
           <input type="text" id="login-kasutajanimi" required />
         </label>
-        <label>Parool
+        <label><span data-i18n="lbl-parool">Parool</span>
           <input type="password" id="login-parool" required />
         </label>
-        <button type="submit" class="btn btn-primary">Logi sisse</button>
+        <button type="submit" class="btn btn-primary" data-i18n="auth-tab-login">Logi sisse</button>
       </form>
 
       <form id="form-register" class="auth-form" hidden>
-        <label>Kasutajanimi
+        <label><span data-i18n="lbl-kasutajanimi">Kasutajanimi</span>
           <input type="text" id="reg-kasutajanimi" required />
         </label>
-        <label>Email
+        <label><span data-i18n="lbl-email">Email</span>
           <input type="email" id="reg-email" required />
         </label>
-        <label>Parool (min 8 tähemärki)
+        <label><span data-i18n="lbl-parool8">Parool (min 8 tähemärki)</span>
           <input type="password" id="reg-parool" required minlength="8" />
         </label>
 
         <!-- GDPR nõusolek — kohustuslik märkeruut -->
         <label class="consent-row">
           <input type="checkbox" id="reg-nousolek" required />
-          <span>Olen lugenud ja nõustun
+          <span data-i18n-html="consent-html">Olen lugenud ja nõustun
             <a href="#/privaatsus" data-nav target="_blank">privaatsuspoliitikaga</a> ja
             <a href="#/tingimused" data-nav target="_blank">kasutustingimustega</a>.</span>
         </label>
@@ -306,7 +306,7 @@
         <!-- Cloudflare Turnstile CAPTCHA widget -->
         <div class="cf-turnstile" data-sitekey="" id="reg-turnstile"></div>
 
-        <button type="submit" class="btn btn-primary">Registreeru</button>
+        <button type="submit" class="btn btn-primary" data-i18n="btn-register">Registreeru</button>
       </form>
 
       <p class="modal-error" id="auth-error" hidden></p>
@@ -322,6 +322,6 @@
   <!-- Teavitused (toast) -->
   <div class="toast-wrap" id="toast-wrap"></div>
 
-  <script src="app.js?v=3"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>

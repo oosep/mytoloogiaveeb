@@ -78,6 +78,147 @@
     } catch (_) { return null; }
   };
 
+  // =========================================================================
+  //  KEELED (i18n) — ET / EN
+  //  Staatilised tekstid index.html-is kannavad data-i18n / data-i18n-ph /
+  //  data-i18n-html atribuute; dünaamilised stringid kasutavad t()-funktsiooni.
+  //  Andmebaasi sisu (olendite nimed/kirjeldused) jääb ühekeelseks.
+  // =========================================================================
+  const TOLKED = {
+    et: {
+      'nav-avaleht': 'Avaleht', 'nav-sisu': 'Sisu', 'nav-kaart': 'Kaart',
+      'nav-info': 'Lisainfo', 'nav-lisa': 'Lisa sisu', 'nav-haldus': 'Haldus',
+      'otsi-ph': 'Otsi...',
+      'home-sisu': 'Sisu', 'home-tyhjenda': 'Tühjenda',
+      'home-vihje': 'Vali kategooria, et filtreerida olendeid kaardil.',
+      'kaart-h2': 'Eesti kihelkonnad 1917',
+      'kaart-p': 'Liiguta hiir kihelkonna kohale ja klõpsa, et näha sellega seotud mütoloogilisi olendeid.',
+      'kaart-seotud': 'Seotud olendid', 'kaart-puudub': 'Kaart pole saadaval',
+      'vaata-olendit': 'Vaata olendit →',
+      'home-viimati': 'Viimati lisatud olendid', 'home-vaata': 'Vaata kõiki →',
+      'jalus-rida': 'Tallinna Ülikool · 2026 · pärimus on seotud 1917. aasta kihelkondadega',
+      'jalus-privaatsus': 'Privaatsuspoliitika', 'jalus-tingimused': 'Kasutustingimused',
+      'olendid-h1': 'Sisu nimekiri', 'olendid-p': 'Filtreeri ja sorteeri Eesti mütoloogilisi olendeid.',
+      'f-otsing-ph': 'Otsi nime järgi…', 'f-koik-sfaarid': 'Kõik kategooriad',
+      'f-koik-kihelkonnad': 'Kõik kihelkonnad',
+      'sort-az': 'Nimi A→Ü', 'sort-za': 'Nimi Ü→A', 'sort-sfaar': 'Kategooria järgi',
+      'olendid-tyhi': 'Ühtegi olendit ei leitud.',
+      'tagasi': '← Tagasi', 'laen': 'Laen…',
+      'tyhi-avaldatud': 'Avaldatud olendeid pole veel.', 'viga-laadimine': 'Olendite laadimine ebaõnnestus.',
+      'detail-heli': 'Pärimuslugu (heli)', 'detail-allikad': 'Allikad', 'detail-asukohad': 'Asukohad',
+      'detail-sarnane': 'Sarnane sisu', 'kirjeldus-puudub': 'Kirjeldus puudub.',
+      'fav-on': '★ Lemmikutes', 'fav-off': '☆ Lisa lemmikuks', 'btn-muuda': 'Muuda',
+      'maakond-j': ' maakond', 'kihelkond-j': ' kihelkond',
+      'laen-olendeid': 'Laen olendeid…', 'kih-tyhi': 'Selle kihelkonnaga pole veel olendeid seotud.',
+      'admin-h1': 'Halduslaud', 'admin-p': 'Halda sisu, kinnita modereerimisel kirjed ja muuda staatusi.',
+      'admin-ainult': 'Halduslaud on ainult administraatoritele.',
+      'th-nimi': 'Nimi', 'th-sfaar': 'Kategooria', 'th-autor': 'Autor', 'th-staatus': 'Staatus', 'th-tegevused': 'Tegevused',
+      'stat-kokku': 'Kokku', 'stat-avaldatud': 'Avaldatud', 'stat-modereerimisel': 'Modereerimisel', 'stat-mustand': 'Mustand',
+      'btn-kustuta': 'Kustuta', 'kinnita-kustuta': 'Kas oled kindel, et soovid selle kirje kustutada?',
+      'staatus-uuendatud': 'Staatus uuendatud.', 'olend-kustutatud': 'Kirje kustutatud.',
+      'profiil-h1': 'Minu profiil', 'profiil-lemmikud': 'Minu lemmikud',
+      'profiil-tyhi': 'Sul pole veel lemmikuid. Lisa olendi vaates ☆.', 'roll': 'Roll',
+      'vorm-uus': 'Lisa uus sisu', 'vorm-muuda': 'Muuda: ',
+      'vorm-ligipaas': 'Sisu lisamiseks logi sisse toimetaja või adminina.',
+      'lbl-nimi': 'Nimi *', 'lbl-sfaar': 'Kategooria *', 'lbl-kirjeldus': 'Kirjeldus',
+      'vorm-nimi-ph': 'nt Näkk', 'vorm-kirjeldus-ph': 'Olendi pärimus, omadused ja lood…',
+      'lbl-pilt': 'Pilt (JPG, PNG või WEBP, max 5 MB)', 'lbl-heli': 'Heli (MP3, WAV, M4A või OGG, max 20 MB / 10 min)',
+      'blk-asukohad': 'Asukohad (kihelkonnad)', 'blk-allikad': 'Allikaviited',
+      'btn-lisa-asukoht': '+ Lisa asukoht', 'btn-lisa-viide': '+ Lisa viide', 'btn-salvesta': 'Salvesta',
+      'vali-kihelkond': '— Vali kihelkond —', 'ph-allika-nimi': 'Allika nimetus', 'ph-allika-url': 'URL (valikuline)',
+      'eemalda': 'Eemalda', 'laen-yles': 'Laen üles: ', 'fail-yles': 'Fail üles laaditud.',
+      'fail-suur': 'Fail on liiga suur', 'pilt-salvestatud': '✓ Pilt on salvestatud.', 'heli-salvestatud': '✓ Helifail on salvestatud.',
+      'salvestatud': 'Salvestatud.', 'olend-salvestatud': 'Salvestatud!',
+      'olend-lisatud': 'Lisatud! ', 'avaldatud-kohe': 'Avaldatud.', 'modereerimisele': 'Saadetud modereerimisele.',
+      'auth-tab-login': 'Logi sisse', 'auth-tab-register': 'Loo konto', 'btn-login': 'Logi sisse',
+      'btn-valja': 'Välju', 'valja-logitud': 'Oled välja logitud.',
+      'lbl-kasutajanimi-email': 'Kasutajanimi või email', 'lbl-parool': 'Parool',
+      'lbl-kasutajanimi': 'Kasutajanimi', 'lbl-email': 'Email', 'lbl-parool8': 'Parool (min 8 tähemärki)',
+      'consent-html': 'Olen lugenud ja nõustun <a href="#/privaatsus" data-nav target="_blank">privaatsuspoliitikaga</a> ja <a href="#/tingimused" data-nav target="_blank">kasutustingimustega</a>.',
+      'btn-register': 'Registreeru', 'tere': 'Tere tulemast, ', 'konto-loodud': 'Konto loodud! Oled sisse logitud.',
+      'nousolek-viga': 'Pead nõustuma privaatsuspoliitika ja kasutustingimustega.',
+      'legal-en-note': '',
+    },
+    en: {
+      'nav-avaleht': 'Home', 'nav-sisu': 'Content', 'nav-kaart': 'Map',
+      'nav-info': 'About', 'nav-lisa': 'Add content', 'nav-haldus': 'Admin',
+      'otsi-ph': 'Search...',
+      'home-sisu': 'Content', 'home-tyhjenda': 'Clear',
+      'home-vihje': 'Pick a category to filter beings on the map.',
+      'kaart-h2': 'Estonian parishes, 1917',
+      'kaart-p': 'Hover over a parish and click to see the mythological beings linked to it.',
+      'kaart-seotud': 'Related beings', 'kaart-puudub': 'Map is unavailable',
+      'vaata-olendit': 'View being →',
+      'home-viimati': 'Recently added beings', 'home-vaata': 'See all →',
+      'jalus-rida': 'Tallinn University · 2026 · folklore is linked to the parishes of 1917',
+      'jalus-privaatsus': 'Privacy policy', 'jalus-tingimused': 'Terms of use',
+      'olendid-h1': 'Content list', 'olendid-p': 'Filter and sort Estonian mythological beings.',
+      'f-otsing-ph': 'Search by name…', 'f-koik-sfaarid': 'All categories',
+      'f-koik-kihelkonnad': 'All parishes',
+      'sort-az': 'Name A→Z', 'sort-za': 'Name Z→A', 'sort-sfaar': 'By category',
+      'olendid-tyhi': 'No beings found.',
+      'tagasi': '← Back', 'laen': 'Loading…',
+      'tyhi-avaldatud': 'No published beings yet.', 'viga-laadimine': 'Failed to load beings.',
+      'detail-heli': 'Folk tale (audio)', 'detail-allikad': 'Sources', 'detail-asukohad': 'Locations',
+      'detail-sarnane': 'Similar content', 'kirjeldus-puudub': 'No description.',
+      'fav-on': '★ In favourites', 'fav-off': '☆ Add to favourites', 'btn-muuda': 'Edit',
+      'maakond-j': ' county', 'kihelkond-j': ' parish',
+      'laen-olendeid': 'Loading beings…', 'kih-tyhi': 'No beings are linked to this parish yet.',
+      'admin-h1': 'Dashboard', 'admin-p': 'Manage content, approve items in review and change statuses.',
+      'admin-ainult': 'The dashboard is for administrators only.',
+      'th-nimi': 'Name', 'th-sfaar': 'Category', 'th-autor': 'Author', 'th-staatus': 'Status', 'th-tegevused': 'Actions',
+      'stat-kokku': 'Total', 'stat-avaldatud': 'Published', 'stat-modereerimisel': 'In review', 'stat-mustand': 'Draft',
+      'btn-kustuta': 'Delete', 'kinnita-kustuta': 'Are you sure you want to delete this item?',
+      'staatus-uuendatud': 'Status updated.', 'olend-kustutatud': 'Item deleted.',
+      'profiil-h1': 'My profile', 'profiil-lemmikud': 'My favourites',
+      'profiil-tyhi': 'No favourites yet. Add some with ☆ on a being’s page.', 'roll': 'Role',
+      'vorm-uus': 'Add new content', 'vorm-muuda': 'Edit: ',
+      'vorm-ligipaas': 'Sign in as an editor or admin to add content.',
+      'lbl-nimi': 'Name *', 'lbl-sfaar': 'Category *', 'lbl-kirjeldus': 'Description',
+      'vorm-nimi-ph': 'e.g. Näkk', 'vorm-kirjeldus-ph': 'Folklore, traits and stories of the being…',
+      'lbl-pilt': 'Image (JPG, PNG or WEBP, max 5 MB)', 'lbl-heli': 'Audio (MP3, WAV, M4A or OGG, max 20 MB / 10 min)',
+      'blk-asukohad': 'Locations (parishes)', 'blk-allikad': 'Source references',
+      'btn-lisa-asukoht': '+ Add location', 'btn-lisa-viide': '+ Add reference', 'btn-salvesta': 'Save',
+      'vali-kihelkond': '— Choose a parish —', 'ph-allika-nimi': 'Source title', 'ph-allika-url': 'URL (optional)',
+      'eemalda': 'Remove', 'laen-yles': 'Uploading: ', 'fail-yles': 'File uploaded.',
+      'fail-suur': 'File is too large', 'pilt-salvestatud': '✓ Image saved.', 'heli-salvestatud': '✓ Audio saved.',
+      'salvestatud': 'Saved.', 'olend-salvestatud': 'Saved!',
+      'olend-lisatud': 'Added! ', 'avaldatud-kohe': 'Published.', 'modereerimisele': 'Sent for review.',
+      'auth-tab-login': 'Sign in', 'auth-tab-register': 'Create account', 'btn-login': 'Sign in',
+      'btn-valja': 'Sign out', 'valja-logitud': 'You have been signed out.',
+      'lbl-kasutajanimi-email': 'Username or email', 'lbl-parool': 'Password',
+      'lbl-kasutajanimi': 'Username', 'lbl-email': 'Email', 'lbl-parool8': 'Password (min 8 characters)',
+      'consent-html': 'I have read and agree to the <a href="#/privaatsus" data-nav target="_blank">privacy policy</a> and <a href="#/tingimused" data-nav target="_blank">terms of use</a>.',
+      'btn-register': 'Register', 'tere': 'Welcome, ', 'konto-loodud': 'Account created! You are signed in.',
+      'nousolek-viga': 'You must agree to the privacy policy and terms of use.',
+      'legal-en-note': 'These legal texts are currently available only in Estonian.',
+    },
+  };
+
+  // Kategooriate (sfääride) ja staatuste KUVAnimed — andmebaasi väärtus
+  // jääb alati eestikeelseks, tõlgitakse ainult ekraanil.
+  const SFAAR_EN = {
+    'Mets': 'Forest', 'Vesi': 'Water', 'Kodu': 'Home', 'Ilm': 'Weather',
+    'Kivid ja koopad': 'Rocks and caves', 'Põrgu': 'Underworld', 'Muud': 'Other',
+  };
+  const STAATUS_EN = { 'avaldatud': 'published', 'modereerimisel': 'in review', 'mustand': 'draft' };
+
+  state.keel = localStorage.getItem('keel') === 'en' ? 'en' : 'et';
+  const t = (k) => (TOLKED[state.keel] && TOLKED[state.keel][k]) ?? TOLKED.et[k] ?? k;
+  const sfaarNimi = (s) => (state.keel === 'en' ? (SFAAR_EN[s] || s) : s);
+  const staatusNimi = (s) => (state.keel === 'en' ? (STAATUS_EN[s] || s) : s);
+
+  /** Rakendab valitud keele kõigile data-i18n märgistega elementidele. */
+  function rakendaKeel() {
+    document.documentElement.lang = state.keel;
+    $$('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
+    $$('[data-i18n-ph]').forEach((el) => { el.placeholder = t(el.dataset.i18nPh); });
+    // NB: i18n-html väärtused tulevad AINULT meie enda sõnastikust (mitte kasutajalt)
+    $$('[data-i18n-html]').forEach((el) => { el.innerHTML = t(el.dataset.i18nHtml); });
+    const lb = $('#lang-btn');
+    if (lb) lb.textContent = state.keel.toUpperCase() + ' ▾';
+  }
+
   // --- API abifunktsioon ---------------------------------------------------
   async function api(path, opts = {}) {
     const res = await fetch('/api' + path, {
@@ -137,11 +278,11 @@
         <div class="nav-user">
           <a href="#/profiil" data-nav class="uname">${esc(state.kasutaja.kasutajanimi)}</a>
           <span class="urole">${esc(state.kasutaja.roll)}</span>
-          <button class="btn-link" id="logout-btn">Välju</button>
+          <button class="btn-link" id="logout-btn">${esc(t('btn-valja'))}</button>
         </div>`;
       $('#logout-btn').addEventListener('click', logout);
     } else {
-      el.innerHTML = `<button class="btn btn-primary" id="login-open">Logi sisse</button>`;
+      el.innerHTML = `<button class="btn btn-primary" id="login-open">${esc(t('btn-login'))}</button>`;
       $('#login-open').addEventListener('click', () => avaAuthModal('login'));
     }
     // Peida rollipõhised nav-lingid
@@ -157,7 +298,7 @@
     state.lemmikIds = new Set();
     state.olendidCache = null; // roll muutus -> /api/olendid vastus muutub
     renderNavAuth();
-    toast('Oled välja logitud.');
+    toast(t('valja-logitud'));
     location.hash = '#/';
   }
 
@@ -235,7 +376,7 @@
         <span class="sfaar-item-icon" style="--sf-color:${SFAAR_COLORS[s] || '#555'}">
           ${SFAAR_SVG[s] || ''}
         </span>
-        <span class="sfaar-item-name">${esc(s)}</span>
+        <span class="sfaar-item-name">${esc(sfaarNimi(s))}</span>
         <span class="sfaar-item-check" aria-hidden="true">✦</span>
       </button>`).join('');
     $$('.sfaar-item', list).forEach((item) =>
@@ -260,7 +401,7 @@
       const olendid = await laeOlendidCache();
       const valik = olendid.filter((o) => o.staatus === 'avaldatud').slice(0, 5);
       if (!valik.length) {
-        grid.innerHTML = '<p class="empty-msg">Avaldatud olendeid pole veel.</p>';
+        grid.innerHTML = `<p class="empty-msg">${esc(t('tyhi-avaldatud'))}</p>`;
         return;
       }
       grid.innerHTML = valik.map((o) => `
@@ -272,14 +413,14 @@
           </div>
           <div class="viimati-card-body">
             <h3>${esc(o.nimi)}</h3>
-            <p>${esc(o.sfaar)}</p>
+            <p>${esc(sfaarNimi(o.sfaar))}</p>
           </div>
         </div>`).join('');
       $$('.viimati-card', grid).forEach((c) =>
         c.addEventListener('click', () => { location.hash = '#/olend/' + c.dataset.id; })
       );
     } catch (_) {
-      grid.innerHTML = '<p class="empty-msg">Olendite laadimine ebaõnnestus.</p>';
+      grid.innerHTML = `<p class="empty-msg">${esc(t('viga-laadimine'))}</p>`;
     }
   }
 
@@ -306,7 +447,7 @@
     const el = document.getElementById(opts.container);
     if (!el) return null;
     if (!MAPBOX_TOKEN || !state.geojson) {
-      el.innerHTML = '<div class="map-missing">Kaart pole saadaval</div>';
+      el.innerHTML = `<div class="map-missing">${esc(t('kaart-puudub'))}</div>`;
       return null;
     }
 
@@ -406,8 +547,8 @@
               .setLngLat(kihelkondKeskpunkt(feat))
               .setPopup(new mapboxgl.Popup({ offset: 25, closeButton: false })
                 .setHTML(
-                  `<strong>${esc(o.nimi)}</strong><br><small>${esc(o.sfaar)}</small>` +
-                  `<br><a href="#/olend/${Number(o.id)}">Vaata olendit →</a>`
+                  `<strong>${esc(o.nimi)}</strong><br><small>${esc(sfaarNimi(o.sfaar))}</small>` +
+                  `<br><a href="#/olend/${Number(o.id)}">${esc(t('vaata-olendit'))}</a>`
                 ))
               .addTo(map);
             markerid.push({ marker, sfaar: o.sfaar });
@@ -479,7 +620,7 @@
         <div class="olend-card-img">${pilt}</div>
         <div class="olend-card-body">
           <h3>${esc(o.nimi)}</h3>
-          <div class="olend-card-sfaar">${SFAAR_IKOONID[o.sfaar] || ''} ${esc(o.sfaar)}</div>
+          <div class="olend-card-sfaar">${SFAAR_IKOONID[o.sfaar] || ''} ${esc(sfaarNimi(o.sfaar))}</div>
           <p class="olend-card-desc">${esc(o.kirjeldus)}</p>
           <div class="olend-card-tags">${tags}</div>
         </div>
@@ -495,17 +636,18 @@
   //  V2 — OLENDITE NIMEKIRI
   // =========================================================================
   async function renderOlendid(params) {
-    // Täida sfääri ja kihelkonna filtrid
+    // Täida sfääri ja kihelkonna filtrid (ehitatakse igal renderdusel uuesti,
+    // et keelevahetus uuendaks ka valikute silte; valitud väärtus säilib)
     const sfaarSel = $('#f-sfaar');
-    if (sfaarSel.options.length <= 1) {
-      sfaarSel.innerHTML = '<option value="">Kõik sfäärid</option>' +
-        state.sfaarid.map((s) => `<option value="${esc(s)}">${esc(s)}</option>`).join('');
-    }
+    const sfaarValik = sfaarSel.value;
+    sfaarSel.innerHTML = `<option value="">${esc(t('f-koik-sfaarid'))}</option>` +
+      state.sfaarid.map((s) => `<option value="${esc(s)}">${esc(sfaarNimi(s))}</option>`).join('');
+    sfaarSel.value = sfaarValik;
     const kihSel = $('#f-kihelkond');
-    if (kihSel.options.length <= 1) {
-      kihSel.innerHTML = '<option value="">Kõik kihelkonnad</option>' +
-        state.kihelkonnad.map((k) => `<option value="${esc(k)}">${esc(k)}</option>`).join('');
-    }
+    const kihValik = kihSel.value;
+    kihSel.innerHTML = `<option value="">${esc(t('f-koik-kihelkonnad'))}</option>` +
+      state.kihelkonnad.map((k) => `<option value="${esc(k)}">${esc(k)}</option>`).join('');
+    kihSel.value = kihValik;
 
     // Eeltäida URL-i parameetritest
     if (params.sfaar) sfaarSel.value = params.sfaar;
@@ -548,7 +690,7 @@
   // =========================================================================
   async function renderDetail(id) {
     const wrap = $('#detail-content');
-    wrap.innerHTML = '<p class="empty-msg">Laen…</p>';
+    wrap.innerHTML = `<p class="empty-msg">${esc(t('laen'))}</p>`;
     let o;
     try {
       const d = await api('/olendid/' + id);
@@ -563,11 +705,11 @@
       : `<div class="detail-img"><div class="placeholder">${SFAAR_IKOONID[o.sfaar] || '✶'}</div></div>`;
 
     const heli = o.heli_url
-      ? `<div class="detail-block"><h3>Pärimuslugu (heli)</h3><audio class="audio-player" controls src="${esc(o.heli_url)}"></audio></div>`
+      ? `<div class="detail-block"><h3>${esc(t('detail-heli'))}</h3><audio class="audio-player" controls src="${esc(o.heli_url)}"></audio></div>`
       : '';
 
     const allikad = (o.allikad || []).length
-      ? `<div class="detail-block"><h3>Allikad</h3><ul class="detail-sources">${o.allikad
+      ? `<div class="detail-block"><h3>${esc(t('detail-allikad'))}</h3><ul class="detail-sources">${o.allikad
           .map((a) => {
             const url = a.url && turvalineUrl(a.url); // XSS-kaitse: ainult http(s) lingid
             return `<li>${url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(a.viide)}</a>` : esc(a.viide)}</li>`;
@@ -576,19 +718,19 @@
       : '';
 
     const asukohad = (o.asukohad || []).length
-      ? `<div class="detail-block"><h3>Asukohad</h3><div class="olend-card-tags">${o.asukohad
+      ? `<div class="detail-block"><h3>${esc(t('detail-asukohad'))}</h3><div class="olend-card-tags">${o.asukohad
           .map((a) => `<span class="tag">${esc(a.kihelkond)}${a.maakond ? ' · ' + esc(a.maakond) : ''}</span>`)
           .join('')}</div><div class="detail-map" id="detail-map"></div></div>`
       : '';
 
     const onLemmik = state.lemmikIds.has(o.id);
     const favBtn = state.kasutaja
-      ? `<button class="fav-btn ${onLemmik ? 'on' : ''}" id="fav-btn">${onLemmik ? '★ Lemmikutes' : '☆ Lisa lemmikuks'}</button>`
+      ? `<button class="fav-btn ${onLemmik ? 'on' : ''}" id="fav-btn">${esc(onLemmik ? t('fav-on') : t('fav-off'))}</button>`
       : '';
 
     const muudaBtn =
       state.kasutaja && (state.kasutaja.roll === 'admin' || o.autor === state.kasutaja.kasutajanimi)
-        ? `<a href="#/muuda/${o.id}" data-nav class="btn btn-ghost">Muuda</a>`
+        ? `<a href="#/muuda/${o.id}" data-nav class="btn btn-ghost">${esc(t('btn-muuda'))}</a>`
         : '';
 
     wrap.innerHTML = `
@@ -597,16 +739,16 @@
           ${pilt}
           <div class="detail-meta">
             <h1>${esc(o.nimi)}</h1>
-            <span class="detail-sfaar-badge">${SFAAR_IKOONID[o.sfaar] || ''} ${esc(o.sfaar)}</span>
+            <span class="detail-sfaar-badge">${SFAAR_IKOONID[o.sfaar] || ''} ${esc(sfaarNimi(o.sfaar))}</span>
             <div class="detail-actions">${favBtn}${muudaBtn}</div>
-            <p class="detail-desc">${esc(o.kirjeldus) || '<em>Kirjeldus puudub.</em>'}</p>
+            <p class="detail-desc">${esc(o.kirjeldus) || '<em>' + esc(t('kirjeldus-puudub')) + '</em>'}</p>
           </div>
         </div>
         ${heli}
         ${asukohad}
         ${allikad}
         <div class="detail-block related-block" id="related-block" hidden>
-          <h3>Sama sfääri olendid</h3>
+          <h3>${esc(t('detail-sarnane'))}</h3>
           <div class="related-grid" id="related-grid"></div>
         </div>
       </div>`;
@@ -683,15 +825,15 @@
   async function näitaKihelkond(p, panel) {
     panel.def.hidden = true;
     panel.det.hidden = false;
-    panel.maakond.textContent = (p.MAAKOND || '') + ' maakond';
-    panel.nimi.textContent = p.NIMI + ' kihelkond';
+    panel.maakond.textContent = (p.MAAKOND || '') + t('maakond-j');
+    panel.nimi.textContent = p.NIMI + t('kihelkond-j');
 
     const cont = panel.olendid;
-    cont.innerHTML = '<p class="mp-laen">Laen olendeid…</p>';
+    cont.innerHTML = `<p class="mp-laen">${esc(t('laen-olendeid'))}</p>`;
     try {
       const d = await api('/kihelkonnad/' + encodeURIComponent(p.NIMI) + '/olendid');
       if (!d.olendid.length) {
-        cont.innerHTML = '<p class="mp-tühi">Selle kihelkonnaga pole veel olendeid seotud.</p>';
+        cont.innerHTML = `<p class="mp-tühi">${esc(t('kih-tyhi'))}</p>`;
         return;
       }
       cont.innerHTML = d.olendid.map((o) => `
@@ -701,7 +843,7 @@
             : (SFAAR_IKOONID[o.sfaar] || '✶')}</div>
           <div>
             <h4>${esc(o.nimi)}</h4>
-            <span>${esc(o.sfaar)}</span>
+            <span>${esc(sfaarNimi(o.sfaar))}</span>
           </div>
         </div>`).join('');
       $$('.mp-olend', cont).forEach((el) =>
@@ -718,7 +860,7 @@
   async function renderAdmin() {
     if (!state.kasutaja || state.kasutaja.roll !== 'admin') {
       location.hash = '#/';
-      toast('Halduslaud on ainult administraatoritele.', 'err');
+      toast(t('admin-ainult'), 'err');
       return;
     }
     let olendid = [];
@@ -730,26 +872,26 @@
     // Statistika
     const arv = (st) => olendid.filter((o) => o.staatus === st).length;
     $('#admin-stats').innerHTML = `
-      <div class="stat-card"><div class="num">${olendid.length}</div><div class="lbl">Kokku</div></div>
-      <div class="stat-card"><div class="num">${arv('avaldatud')}</div><div class="lbl">Avaldatud</div></div>
-      <div class="stat-card"><div class="num">${arv('modereerimisel')}</div><div class="lbl">Modereerimisel</div></div>
-      <div class="stat-card"><div class="num">${arv('mustand')}</div><div class="lbl">Mustand</div></div>`;
+      <div class="stat-card"><div class="num">${olendid.length}</div><div class="lbl">${esc(t('stat-kokku'))}</div></div>
+      <div class="stat-card"><div class="num">${arv('avaldatud')}</div><div class="lbl">${esc(t('stat-avaldatud'))}</div></div>
+      <div class="stat-card"><div class="num">${arv('modereerimisel')}</div><div class="lbl">${esc(t('stat-modereerimisel'))}</div></div>
+      <div class="stat-card"><div class="num">${arv('mustand')}</div><div class="lbl">${esc(t('stat-mustand'))}</div></div>`;
 
     const tbody = $('#admin-tbody');
     tbody.innerHTML = olendid.map((o) => `
       <tr data-id="${o.id}">
         <td><span class="olend-name">${esc(o.nimi)}</span></td>
-        <td>${SFAAR_IKOONID[o.sfaar] || ''} ${esc(o.sfaar)}</td>
+        <td>${SFAAR_IKOONID[o.sfaar] || ''} ${esc(sfaarNimi(o.sfaar))}</td>
         <td>${esc(o.autor || '—')}</td>
-        <td><span class="status-dot ${esc(o.staatus)}">${esc(o.staatus)}</span></td>
+        <td><span class="status-dot ${esc(o.staatus)}">${esc(staatusNimi(o.staatus))}</span></td>
         <td>
           <div class="row-actions">
             <select class="staatus-sel">
               ${['avaldatud', 'modereerimisel', 'mustand']
-                .map((s) => `<option value="${s}" ${s === o.staatus ? 'selected' : ''}>${s}</option>`).join('')}
+                .map((s) => `<option value="${s}" ${s === o.staatus ? 'selected' : ''}>${esc(staatusNimi(s))}</option>`).join('')}
             </select>
-            <a href="#/muuda/${o.id}" data-nav class="icon-btn">Muuda</a>
-            <button class="icon-btn danger del-btn">Kustuta</button>
+            <a href="#/muuda/${o.id}" data-nav class="icon-btn">${esc(t('btn-muuda'))}</a>
+            <button class="icon-btn danger del-btn">${esc(t('btn-kustuta'))}</button>
           </div>
         </td>
       </tr>`).join('');
@@ -760,7 +902,7 @@
         try {
           await api('/olendid/' + id + '/staatus', { method: 'PATCH', body: { staatus: e.target.value } });
           state.olendidCache = null;
-          toast('Staatus uuendatud.');
+          toast(t('staatus-uuendatud'));
           renderAdmin();
         } catch (err) { toast(err.message, 'err'); }
       })
@@ -768,11 +910,11 @@
     $$('.del-btn', tbody).forEach((btn) =>
       btn.addEventListener('click', async (e) => {
         const id = e.target.closest('tr').dataset.id;
-        if (!confirm('Kas oled kindel, et soovid selle olendi kustutada?')) return;
+        if (!confirm(t('kinnita-kustuta'))) return;
         try {
           await api('/olendid/' + id, { method: 'DELETE' });
           state.olendidCache = null;
-          toast('Olend kustutatud.');
+          toast(t('olend-kustutatud'));
           renderAdmin();
         } catch (err) { toast(err.message, 'err'); }
       })
@@ -791,7 +933,7 @@
         <div class="profiil-info">
           <h2>${esc(k.kasutajanimi)}</h2>
           <p>${esc(k.email || '')}</p>
-          <p>Roll: <span class="urole">${esc(k.roll)}</span></p>
+          <p>${esc(t('roll'))}: <span class="urole">${esc(k.roll)}</span></p>
         </div>
       </div>`;
 
@@ -816,16 +958,16 @@
       .join('');
     return `
       <div class="vorm-dynamic-row">
-        <select class="dyn-kihelkond"><option value="">— Vali kihelkond —</option>${opts}</select>
-        <button type="button" class="rm" title="Eemalda">&times;</button>
+        <select class="dyn-kihelkond"><option value="">${esc(t('vali-kihelkond'))}</option>${opts}</select>
+        <button type="button" class="rm" title="${esc(t('eemalda'))}">&times;</button>
       </div>`;
   }
   function viiteReaHTML(val = {}) {
     return `
       <div class="vorm-dynamic-row">
-        <input type="text" class="dyn-viide" placeholder="Allika nimetus" value="${esc(val.viide || '')}" />
-        <input type="url" class="dyn-viide-url" placeholder="URL (valikuline)" value="${esc(val.url || '')}" />
-        <button type="button" class="rm" title="Eemalda">&times;</button>
+        <input type="text" class="dyn-viide" placeholder="${esc(t('ph-allika-nimi'))}" value="${esc(val.viide || '')}" />
+        <input type="url" class="dyn-viide-url" placeholder="${esc(t('ph-allika-url'))}" value="${esc(val.url || '')}" />
+        <button type="button" class="rm" title="${esc(t('eemalda'))}">&times;</button>
       </div>`;
   }
   function seoRmNupud() {
@@ -836,12 +978,12 @@
 
   async function renderVorm(muudaId) {
     if (!state.kasutaja || !['toimetaja', 'admin'].includes(state.kasutaja.roll)) {
-      toast('Sisu lisamiseks logi sisse toimetaja või adminina.', 'err');
+      toast(t('vorm-ligipaas'), 'err');
       location.hash = '#/'; return;
     }
 
-    // Täida sfääri valik
-    $('#vorm-sfaar').innerHTML = state.sfaarid.map((s) => `<option value="${esc(s)}">${esc(s)}</option>`).join('');
+    // Täida sfääri valik (väärtus jääb eestikeelseks, silt tõlgitakse)
+    $('#vorm-sfaar').innerHTML = state.sfaarid.map((s) => `<option value="${esc(s)}">${esc(sfaarNimi(s))}</option>`).join('');
 
     // Lähtesta
     $('#olend-vorm').reset();
@@ -853,13 +995,13 @@
     $('#asukoht-list').innerHTML = '';
     $('#viide-list').innerHTML = '';
     $('#vorm-teade').textContent = '';
-    $('#vorm-pealkiri').textContent = 'Lisa uus olend';
+    $('#vorm-pealkiri').textContent = t('vorm-uus');
 
     if (muudaId) {
       try {
         const d = await api('/olendid/' + muudaId);
         const o = d.olend;
-        $('#vorm-pealkiri').textContent = 'Muuda: ' + o.nimi;
+        $('#vorm-pealkiri').textContent = t('vorm-muuda') + o.nimi;
         $('#vorm-id').value = o.id;
         $('#vorm-nimi').value = o.nimi;
         $('#vorm-sfaar').value = o.sfaar;
@@ -899,7 +1041,7 @@
     const eemalda = document.createElement('button');
     eemalda.type = 'button';
     eemalda.className = 'btn-small';
-    eemalda.textContent = 'Eemalda';
+    eemalda.textContent = t('eemalda');
     eemalda.addEventListener('click', () => {
       $('#vorm-' + liik).value = '';
       $('#vorm-' + liik + '-fail').value = '';
@@ -913,7 +1055,7 @@
     const info = $('#vorm-' + liik + '-info');
     info.hidden = true;
     info.textContent = '';
-    if (url) näitaManusInfo(liik, liik === 'pilt' ? '✓ Pilt on salvestatud.' : '✓ Helifail on salvestatud.');
+    if (url) näitaManusInfo(liik, liik === 'pilt' ? t('pilt-salvestatud') : t('heli-salvestatud'));
   }
 
   /** Seob failisisendi: valikul laaditakse fail kohe üles ja viide salvub peitväljale. */
@@ -925,18 +1067,18 @@
       const fail = sisend.files && sisend.files[0];
       if (!fail) return;
       if (fail.size > maxMB * 1024 * 1024) {
-        toast('Fail on liiga suur (max ' + maxMB + ' MB).', 'err');
+        toast(t('fail-suur') + ' (max ' + maxMB + ' MB).', 'err');
         sisend.value = '';
         return;
       }
       info.hidden = false;
-      info.textContent = 'Laen üles: ' + fail.name + '…';
+      info.textContent = t('laen-yles') + fail.name + '…';
       sisend.disabled = true;
       try {
         const f = await laeFailYles(fail, liik);
         $('#vorm-' + liik).value = f.url;
         näitaManusInfo(liik, '✓ ' + f.originaalnimi + ' (' + Math.max(1, Math.round(f.suurus / 1024)) + ' kB)');
-        toast('Fail üles laaditud.');
+        toast(t('fail-yles'));
       } catch (e) {
         info.hidden = true;
         info.textContent = '';
@@ -1081,7 +1223,11 @@
   function renderLegal(milline) {
     const sisu = LEGAL_SISU[milline] || LEGAL_SISU.privaatsus;
     const el = document.getElementById('legal-' + milline);
-    if (el) el.innerHTML = sisu;
+    if (!el) return;
+    // Juriidilised tekstid on (esialgu) ainult eesti keeles — inglise keeles
+    // lisatakse selgitav märkus lehe algusesse.
+    const märkus = t('legal-en-note');
+    el.innerHTML = (märkus ? `<p class="legal-meta"><em>${esc(märkus)}</em></p>` : '') + sisu;
   }
 
 
@@ -1174,6 +1320,15 @@
       rakendaSfaarFilter();
     });
 
+    // Keelevahetus (ET ↔ EN) — valik salvestatakse localStorage'i
+    $('#lang-btn').addEventListener('click', () => {
+      state.keel = state.keel === 'et' ? 'en' : 'et';
+      try { localStorage.setItem('keel', state.keel); } catch (_) { /* privaatrežiim */ }
+      rakendaKeel();
+      renderNavAuth();
+      router(); // joonista aktiivne vaade uues keeles uuesti
+    });
+
     // Mobiilimenüü
     $('#nav-toggle').addEventListener('click', () => $('#nav-links').classList.toggle('open'));
 
@@ -1201,7 +1356,7 @@
         await laeLemmikud();
         renderNavAuth();
         suljeAuthModal();
-        toast('Tere tulemast, ' + d.kasutaja.kasutajanimi + '!');
+        toast(t('tere') + d.kasutaja.kasutajanimi + '!');
         router();
       } catch (err) { authViga(err.message); }
     });
@@ -1213,7 +1368,7 @@
         ? document.querySelector('#reg-turnstile input[name="cf-turnstile-response"]').value
         : '';
       if (!$('#reg-nousolek').checked) {
-        return authViga('Pead nõustuma privaatsuspoliitika ja kasutustingimustega.');
+        return authViga(t('nousolek-viga'));
       }
       try {
         const d = await api('/auth/register', {
@@ -1230,7 +1385,7 @@
         await laeLemmikud();
         renderNavAuth();
         suljeAuthModal();
-        toast('Konto loodud! Oled sisse logitud.');
+        toast(t('konto-loodud'));
         router();
       } catch (err) {
         if (window.turnstile && turnstileWidget !== null) window.turnstile.reset(turnstileWidget); // lähtesta widget
@@ -1311,9 +1466,9 @@
         else d = await api('/olendid', { method: 'POST', body: keha });
         state.olendidCache = null; // sisu muutus -> vahemälu aegus
         teade.className = 'vorm-teade ok';
-        teade.textContent = id ? 'Olend salvestatud!' : 'Olend lisatud! ' +
-          (state.kasutaja.roll === 'admin' ? 'Avaldatud.' : 'Saadetud modereerimisele.');
-        toast('Salvestatud.');
+        teade.textContent = id ? t('olend-salvestatud') : t('olend-lisatud') +
+          (state.kasutaja.roll === 'admin' ? t('avaldatud-kohe') : t('modereerimisele'));
+        toast(t('salvestatud'));
         setTimeout(() => { location.hash = '#/olend/' + d.olend.id; }, 700);
       } catch (err) {
         teade.className = 'vorm-teade err';
@@ -1329,6 +1484,7 @@
   // =========================================================================
   async function init() {
     seoSündmused();
+    rakendaKeel(); // rakenda salvestatud keelevalik enne esimest renderdust
     await laeAlgandmed();
     await laeKasutaja();
     if (!location.hash) location.hash = '#/';
