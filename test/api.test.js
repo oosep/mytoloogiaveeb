@@ -12,11 +12,13 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-// Testikeskkond PEAB olema paigas enne server.js laadimist
+// Testikeskkond PEAB olema paigas enne server.js laadimist.
+// NB: server.js kutsub dotenv.config(), mis EI kirjuta üle juba seatud muutujaid —
+// seega "kinnitame" arendusrežiimi siin, et .env (NODE_ENV=production) ei segaks.
 const ajutine = fs.mkdtempSync(path.join(os.tmpdir(), 'mytoloogia-test-'));
 process.env.DB_PATH = path.join(ajutine, 'test.db');
 process.env.MANUSTE_KAUST = path.join(ajutine, 'uploads');
-delete process.env.NODE_ENV; // arendusrežiim: testkasutajad külvatakse
+process.env.NODE_ENV = 'development'; // arendusrežiim: testkasutajad külvatakse
 
 const fx = require('./fixtures');
 const { app } = require('../server');
