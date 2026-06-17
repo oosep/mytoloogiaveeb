@@ -240,8 +240,7 @@ body::before {
 
 .home-layout {
   display: flex;
-  flex: 1;
-  min-height: 480px;
+  height: calc(100vh - var(--nav-h));
   overflow: hidden;
 }
 
@@ -738,7 +737,7 @@ body::before {
   .nav-auth .btn { width: 100%; }
 
   /* Avaleht: sfääripaneel muutub horisontaalseks kiibiribaks kaardi kohal */
-  .home-layout { flex-direction: column; min-height: 0; }
+  .home-layout { flex-direction: column; height: calc(100vh - var(--nav-h)); }
   .sfaar-sidebar {
     width: 100%; flex-direction: row; align-items: center;
     overflow-x: auto; overflow-y: hidden;
@@ -757,7 +756,7 @@ body::before {
   .sfaar-item-icon { width: 24px; height: 24px; }
   .sfaar-item-icon svg { width: 13px; height: 13px; }
   .sfaar-item-name { font-size: 14px; }
-  .home-map-area { min-height: 58vh; }
+  .home-map-area { min-height: 0; }
   #home-panel { width: 100%; max-width: none; }
 
   .map-panel { width: 100%; max-width: none; }
