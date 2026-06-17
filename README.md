@@ -19,11 +19,7 @@ hariduslikult kasutatavaks tervikuks.
 
 ## Loomise raamistik
 
-Projekt on valminud **Tallinna Ülikooli Digitehnoloogiate Instituudi**
-õppetöö raames objektorienteeritud programmeerimise ja veebiarenduse kursuse
-arendusprojektina (Meeskond 12). Töö ühendab akadeemilise usaldusväärsuse
-(allikaviited, modereeritud sisu) tänapäevase kasutajakogemusega
-(kaardipõhine avastamine, otsing ja filtreerimine).
+Projekt on valminud Tallinna Ülikooli Digitehnoloogiate Instituudi õppetöö raames tarkvaraarenduse projekti kursuse arendusprojektina (Meeskond 12). Töö ühendab akadeemilise usaldusväärsuse (allikaviited, modereeritud sisu) tänapäevase kasutajakogemusega (kaardipõhine avastamine, otsing ja filtreerimine).
 
 ## Autorid
 
