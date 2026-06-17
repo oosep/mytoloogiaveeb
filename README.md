@@ -1,4 +1,4 @@
-# Eesti Mütoloogiaveeb — projekt5
+# Eesti Mütoloogiaveeb — projekt
 
 Hariduslik ja kultuuriline infosüsteem Eesti mütoloogilise pärimuse kohta.
 Olendid on jaotatud seitsmesse mütoloogilisse sfääri ja seotud 1917. aasta
