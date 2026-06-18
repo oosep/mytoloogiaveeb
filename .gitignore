@@ -1,15 +1,15 @@
-# Sõltuvused — tekivad "npm install" käigus automaatselt
+# Sõltuvused - tekivad "npm install" käigus automaatselt
 node_modules/
 
-# Saladused — EI lähe kunagi GitHubi!
+# Saladused - EI lähe kunagi GitHubi!
 .env
 
-# Andmebaasifail — tekib serveril automaatselt
+# Andmebaasifail - tekib serveril automaatselt
 *.db
 *.db-shm
 *.db-wal
 
-# Üleslaaditud failid — EI lähe kunagi GitHubi
+# Üleslaaditud failid - EI lähe kunagi GitHubi
 uploads/
 
 # Logid
