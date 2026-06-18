@@ -47,7 +47,7 @@ Projekt on valminud Tallinna Ülikooli Digitehnoloogiate Instituudi
 | dotenv | ^16.4.5 | keskkonnamuutujate laadimine |
 | Mapbox GL JS | v3.0.1 | kaart ja kihelkondade kuvamine |
 
-**Frontend:** puhas SPA (HTML + CSS + vanilla JavaScript), hash-marsruuter —
+**Frontend:** puhas SPA (HTML + CSS + vanilla JavaScript), hash-marsruuter 
 raamistikku ei kasutata.
 
 ## Vaated (V1–V6)
@@ -128,7 +128,7 @@ arenduses, toodangus või alati.
 | `MANUSTE_VOTI` | valikuline | üleslaaditud failide krüpteerimisvõti. |
 | `PORT` | valikuline | serveri port (vaikimisi 3000; pilvemajutajad annavad selle ise). |
 
-Token ja saladused ei lähe kunagi GitHubi — `.env` on `.gitignore`-s, repos on
+Token ja saladused ei lähe kunagi GitHubi  `.env` on `.gitignore`-s, repos on
 ainult `.env.example` näidisstruktuuriga.
 
 ## Kasutajarollid ja registreerimine
@@ -136,7 +136,7 @@ ainult `.env.example` näidisstruktuuriga.
 Süsteemis on kolm rolli: **kasutaja**, **toimetaja** ja **admin**.
 
 - **Admin** näeb halduslauda, kinnitab sisu, muudab staatusi, kustutab olendeid.
-- **Toimetaja** saab lisada/muuta olendeid — uus sisu läheb *modereerimisele*
+- **Toimetaja** saab lisada/muuta olendeid uus sisu läheb *modereerimisele*
   (admini lisatud sisu avaldatakse kohe).
 - **Kasutaja** saab sirvida, otsida ja salvestada lemmikuid.
 
@@ -179,7 +179,7 @@ sisselogimine või registreerimine ebaõnnestub).
 ```
 NODE_ENV=production
 JWT_SECRET=<vähemalt 32 juhuslikku märki>
-ADMIN_PAROOL=<vähemalt 12 märki — esmase admini parool>
+ADMIN_PAROOL=<vähemalt 12 märki  esmase admini parool>
 ADMIN_EMAIL=admin@näidis.ee
 TURNSTILE_SITE_KEY=<Cloudflare Turnstile avalik võti>
 TURNSTILE_SECRET_KEY=<Cloudflare Turnstile salajane võti>
@@ -266,7 +266,7 @@ MySQL-migratsiooni juhistega on failis [`database.sql`](database.sql).
 - `manused`  üleslaaditud piltide/helifailide metaandmed (failid ise asuvad `uploads/` väljaspool veebijuurikat)
 - `audit_logi`  turvalogi (sisselogimiskatsed, failitegevused jne)
 
-Näidis — kasutajate tabeli loomise lause (kopeeritav):
+Näidis kasutajate tabeli loomise lause (kopeeritav):
 
 ```sql
 CREATE TABLE IF NOT EXISTS kasutajad (
