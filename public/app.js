@@ -1,5 +1,5 @@
 /* ===========================================================================
-   Eesti Mütoloogiaveeb — app.js
+   Eesti Mütoloogiaveeb  app.js
    Kogu eesprogrammi loogika:
      - Hash-põhine SPA marsruuter (V1–V6)
      - Autentimise olek (JWT küpsis + /api/auth/me)
@@ -26,7 +26,7 @@
     'Muud': '✶',
   };
 
-  // Sfääride värvid — maalähedane rahvapärane palett, mis sobitub
+  // Sfääride värvid maalähedane rahvapärane palett, mis sobitub
   // veebi rohelis-pruuni disainiga, kuid hoiab sfäärid kaardil eristatavad.
   const SFAAR_COLORS = {
     'Mets': '#2e6b34',
@@ -70,7 +70,7 @@
     String(s == null ? '' : s).replace(/[&<>"']/g, (c) =>
       ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
     );
-  // Lubab linkides AINULT http(s) ja suhtelisi URL-e — javascript: jms ei pääse läbi
+  // Lubab linkides AINULT http(s) ja suhtelisi URL-e  javascript: jms ei pääse läbi
   const turvalineUrl = (u) => {
     try {
       const p = new URL(String(u), location.origin).protocol;
@@ -79,7 +79,7 @@
   };
 
   // =========================================================================
-  //  KEELED (i18n) — ET / EN
+  //  KEELED (i18n)  ET / EN
   //  Staatilised tekstid index.html-is kannavad data-i18n / data-i18n-ph /
   //  data-i18n-html atribuute; dünaamilised stringid kasutavad t()-funktsiooni.
   //  Andmebaasi sisu (olendite nimed/kirjeldused) jääb ühekeelseks.
@@ -125,7 +125,7 @@
       'lbl-pilt': 'Pilt (JPG, PNG või WEBP, max 5 MB)', 'lbl-heli': 'Heli (MP3, WAV, M4A või OGG, max 20 MB / 10 min)',
       'blk-asukohad': 'Asukohad (kihelkonnad)', 'blk-allikad': 'Allikaviited',
       'btn-lisa-asukoht': '+ Lisa asukoht', 'btn-lisa-viide': '+ Lisa viide', 'btn-salvesta': 'Salvesta',
-      'vali-kihelkond': '— Vali kihelkond —', 'ph-allika-nimi': 'Allika nimetus', 'ph-allika-url': 'URL (valikuline)',
+      'vali-kihelkond': ' Vali kihelkond ', 'ph-allika-nimi': 'Allika nimetus', 'ph-allika-url': 'URL (valikuline)',
       'eemalda': 'Eemalda', 'laen-yles': 'Laen üles: ', 'fail-yles': 'Fail üles laaditud.',
       'fail-suur': 'Fail on liiga suur', 'pilt-salvestatud': '✓ Pilt on salvestatud.', 'heli-salvestatud': '✓ Helifail on salvestatud.',
       'salvestatud': 'Salvestatud.', 'olend-salvestatud': 'Salvestatud!',
@@ -179,7 +179,7 @@
       'lbl-pilt': 'Image (JPG, PNG or WEBP, max 5 MB)', 'lbl-heli': 'Audio (MP3, WAV, M4A or OGG, max 20 MB / 10 min)',
       'blk-asukohad': 'Locations (parishes)', 'blk-allikad': 'Source references',
       'btn-lisa-asukoht': '+ Add location', 'btn-lisa-viide': '+ Add reference', 'btn-salvesta': 'Save',
-      'vali-kihelkond': '— Choose a parish —', 'ph-allika-nimi': 'Source title', 'ph-allika-url': 'URL (optional)',
+      'vali-kihelkond': ' Choose a parish ', 'ph-allika-nimi': 'Source title', 'ph-allika-url': 'URL (optional)',
       'eemalda': 'Remove', 'laen-yles': 'Uploading: ', 'fail-yles': 'File uploaded.',
       'fail-suur': 'File is too large', 'pilt-salvestatud': '✓ Image saved.', 'heli-salvestatud': '✓ Audio saved.',
       'salvestatud': 'Saved.', 'olend-salvestatud': 'Saved!',
@@ -233,7 +233,7 @@
       'lbl-pilt': 'Изображение (JPG, PNG или WEBP, макс. 5 МБ)', 'lbl-heli': 'Аудио (MP3, WAV, M4A или OGG, макс. 20 МБ / 10 мин)',
       'blk-asukohad': 'Места (приходы)', 'blk-allikad': 'Ссылки на источники',
       'btn-lisa-asukoht': '+ Добавить место', 'btn-lisa-viide': '+ Добавить источник', 'btn-salvesta': 'Сохранить',
-      'vali-kihelkond': '— Выберите приход —', 'ph-allika-nimi': 'Название источника', 'ph-allika-url': 'URL (необязательно)',
+      'vali-kihelkond': ' Выберите приход ', 'ph-allika-nimi': 'Название источника', 'ph-allika-url': 'URL (необязательно)',
       'eemalda': 'Убрать', 'laen-yles': 'Загружаю: ', 'fail-yles': 'Файл загружен.',
       'fail-suur': 'Файл слишком большой', 'pilt-salvestatud': '✓ Изображение сохранено.', 'heli-salvestatud': '✓ Аудио сохранено.',
       'salvestatud': 'Сохранено.', 'olend-salvestatud': 'Сохранено!',
@@ -249,7 +249,7 @@
     },
   };
 
-  // Kategooriate (sfääride) ja staatuste KUVAnimed — andmebaasi väärtus
+  // Kategooriate (sfääride) ja staatuste KUVAnimed  andmebaasi väärtus
   // jääb alati eestikeelseks, tõlgitakse ainult ekraanil.
   const SFAAR_NIMED = {
     en: {
@@ -414,7 +414,7 @@
       const cfg = await api('/config');
       MAPBOX_TOKEN = cfg.mapboxToken || '';
       state.turnstileSiteKey = cfg.turnstileSiteKey || '';
-      renderdaTurnstile(); // sitekey on nüüd teada — proovi widget joonistada
+      renderdaTurnstile(); // sitekey on nüüd teada  proovi widget joonistada
     } catch (_) { /* kasutab tühja stringi, kaart näitab Mapboxi veateadet */ }
     try {
       const res = await fetch('kihelkond_1917.geojson');
@@ -429,11 +429,11 @@
   }
 
   // =========================================================================
-  //  V1 — AVALEHT
+  //  V1  AVALEHT
   // =========================================================================
   async function renderHome() {
     // Sfäärid külgpaneelis = kaardi MARKERITE FILTRID.
-    // (Varem viis klõps olendite nimekirja — nüüd lülitab sfääri
+    // (Varem viis klõps olendite nimekirja  nüüd lülitab sfääri
     //  kaardil sisse/välja. Tühi valik tähendab "näita kõiki".)
     const list = $('#sfaar-list');
     if (!list) return;
@@ -457,7 +457,7 @@
       })
     );
 
-    // Kaart — TÄPSELT sama kaart mis kaardilehel (üks jagatud ehitaja)
+    // Kaart  TÄPSELT sama kaart mis kaardilehel (üks jagatud ehitaja)
     if (state.homeKaart) state.homeKaart.resize();
     else state.homeKaart = looKihelkonnaKaart({ container: 'home-map', panel: homePaneel() });
     rakendaSfaarFilter();
@@ -505,7 +505,7 @@
   //  -------------------------------------------------------------------
   //  KOODIKVALITEET: varem oli kaks ~80% kattuvat funktsiooni
   //  (initHomeMap + initMap), mis joonistasid ERINEVAD kaardid.
-  //  Nüüd on ÜKS ehitaja, mida kasutavad nii avaleht kui kaardileht —
+  //  Nüüd on ÜKS ehitaja, mida kasutavad nii avaleht kui kaardileht 
   //  mõlemad saavad garanteeritult samasuguse kaardi: kihelkondade
   //  täidted, sildid, hover-esiletõste, klõpsatav külgpaneel JA
   //  sfäärivärvilised olendimarkerid.
@@ -528,7 +528,7 @@
 
     const panel = opts.panel;
     let lukus = false;
-    const markerid = []; // { marker, el, grupp } — number-markerid kihelkondade kaupa
+    const markerid = []; // { marker, el, grupp }  number-markerid kihelkondade kaupa
 
     // Nummerdab ja värvib kihelkonna-markerid vastavalt sfäärifiltrile.
     // Tühi/null filter = arvesta kõiki olendeid. Number = sobivate olendite
@@ -667,7 +667,7 @@
     };
   }
 
-  /** Külgpaneelide elemendiviited — avaleht ja kaardileht omavad kumbki oma paneeli. */
+  /** Külgpaneelide elemendiviited  avaleht ja kaardileht omavad kumbki oma paneeli. */
   const homePaneel = () => ({
     root: $('#home-panel'), closeBtn: $('#home-panel-close'),
     def: $('#home-panel-default'), det: $('#home-panel-detail'),
@@ -702,7 +702,7 @@
   function olendKaartHTML(o) {
     // TURVAPARANDUS: pildi varuvariant inline onerror-atribuudi asemel
     // data-fallback atribuudiga (vt delegeeritud käsitlejat init()-is).
-    // See lubas CSP-st 'unsafe-inline' eemaldada — süstitud HTML-i
+    // See lubas CSP-st 'unsafe-inline' eemaldada  süstitud HTML-i
     // sees olevad on*-atribuudid enam EI käivitu.
     const pilt = o.pilt_url
       ? `<img src="${esc(o.pilt_url)}" alt="${esc(o.nimi)}" data-fallback="${esc(SFAAR_IKOONID[o.sfaar] || '✶')}">`
@@ -729,7 +729,7 @@
   }
 
   // =========================================================================
-  //  V2 — OLENDITE NIMEKIRI
+  //  V2  OLENDITE NIMEKIRI
   // =========================================================================
   async function renderOlendid(params) {
     // Täida sfääri ja kihelkonna filtrid (ehitatakse igal renderdusel uuesti,
@@ -782,7 +782,7 @@
   }
 
   // =========================================================================
-  //  V3 — OLENDI DETAILVAADE
+  //  V3  OLENDI DETAILVAADE
   // =========================================================================
   async function renderDetail(id) {
     const wrap = $('#detail-content');
@@ -951,7 +951,7 @@
   }
 
   // =========================================================================
-  //  V4 — ADMIN HALDUSVAADE
+  //  V4  ADMIN HALDUSVAADE
   // =========================================================================
   async function renderAdmin() {
     if (!state.kasutaja || state.kasutaja.roll !== 'admin') {
@@ -978,7 +978,7 @@
       <tr data-id="${o.id}">
         <td><span class="olend-name">${esc(o.nimi)}</span></td>
         <td>${SFAAR_IKOONID[o.sfaar] || ''} ${esc(sfaarNimi(o.sfaar))}</td>
-        <td>${esc(o.autor || '—')}</td>
+        <td>${esc(o.autor || '')}</td>
         <td><span class="status-dot ${esc(o.staatus)}">${esc(staatusNimi(o.staatus))}</span></td>
         <td>
           <div class="row-actions">
@@ -1018,7 +1018,7 @@
   }
 
   // =========================================================================
-  //  V5 — KASUTAJA PROFIIL
+  //  V5  KASUTAJA PROFIIL
   // =========================================================================
   async function renderProfiil() {
     if (!state.kasutaja) { avaAuthModal('login'); location.hash = '#/'; return; }
@@ -1046,7 +1046,7 @@
   }
 
   // =========================================================================
-  //  V6 — SISU LISAMISE / MUUTMISE VORM
+  //  V6  SISU LISAMISE / MUUTMISE VORM
   // =========================================================================
   function asukohaReaHTML(val = {}) {
     const opts = state.kihelkonnad
@@ -1187,7 +1187,7 @@
   }
 
   // =========================================================================
-  //  V7 / V8 — JURIIDILISED LEHED (privaatsuspoliitika, kasutustingimused)
+  //  V7 / V8  JURIIDILISED LEHED (privaatsuspoliitika, kasutustingimused)
   // =========================================================================
   const LEGAL_UPDATED = '10.06.2026';
 
@@ -1320,7 +1320,7 @@
     const sisu = LEGAL_SISU[milline] || LEGAL_SISU.privaatsus;
     const el = document.getElementById('legal-' + milline);
     if (!el) return;
-    // Juriidilised tekstid on (esialgu) ainult eesti keeles — inglise keeles
+    // Juriidilised tekstid on (esialgu) ainult eesti keeles  inglise keeles
     // lisatakse selgitav märkus lehe algusesse.
     const märkus = t('legal-en-note');
     el.innerHTML = (märkus ? `<p class="legal-meta"><em>${esc(märkus)}</em></p>` : '') + sisu;
@@ -1416,7 +1416,7 @@
       rakendaSfaarFilter();
     });
 
-    // Keelevahetus — rippmenüü (ET / EN / RU), valik salvestatakse localStorage'i
+    // Keelevahetus  rippmenüü (ET / EN / RU), valik salvestatakse localStorage'i
     const langBtn = $('#lang-btn');
     const langList = $('#lang-list');
     const suljeLangList = () => {
