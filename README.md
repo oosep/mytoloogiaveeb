@@ -120,7 +120,7 @@ arenduses, toodangus või alati.
 | `NODE_ENV` | toodangus | sea väärtuseks `production`, et lülitada sisse toodangurežiim (turvalised küpsised, range CSRF-kaitse, vaikekasutajaid ei looda). Kui seadmata, töötab rakendus arendusrežiimis. |
 | `JWT_SECRET` | alati | juhuslik salajane string JWT allkirjastamiseks. **Toodangus vähemalt 32 märki**, muidu server ei käivitu. |
 | `MAPBOX_TOKEN` | kaardi jaoks | Mapboxi avalik token (`pk....`). |
-| `LUBATUD_ORIGINID` | toodangus | komaeraldatud lubatud päritolu-URL-id koos `https://`-ga (nt su domeen). **Toodangus kohustuslik** — muidu blokeeritakse kõik muutvad päringud, sh sisselogimine ja registreerimine. |
+| `LUBATUD_ORIGINID` | toodangus | komaeraldatud lubatud päritolu-URL-id koos `https://`-ga (nt su domeen). **Toodangus kohustuslik** muidu blokeeritakse kõik muutvad päringud, sh sisselogimine ja registreerimine. |
 | `ADMIN_PAROOL` | toodangus | esmase administraatori parool (**vähemalt 12 märki**). Toodangus testkasutajaid ei looda; admin tekib sellest muutujast. |
 | `ADMIN_EMAIL` | valikuline | esmase admini e-post (vaikimisi `admin@...`). |
 | `TURNSTILE_SITE_KEY` | toodangus (registreerimiseks) | Cloudflare Turnstile **avalik** võti (CAPTCHA widget). |
