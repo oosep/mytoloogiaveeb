@@ -326,6 +326,24 @@ body::before {
   background: var(--surface-2);
 }
 
+/* Kihelkonna number-marker — koondab kihelkonna olendid üheks märgiks,
+   et samasse kohta ei kuhjuks mitut pin'i. Number = olendite arv,
+   värv = grupi levinuim sfäär (--marker-color seatakse JS-ist). */
+.kih-marker {
+  --marker-color: var(--fern);
+  display: flex; align-items: center; justify-content: center;
+  min-width: 28px; height: 28px; padding: 0 7px;
+  border-radius: 999px;
+  background: var(--marker-color);
+  color: #fff;
+  font-family: var(--font-body); font-weight: 600; font-size: 14px; line-height: 1;
+  border: 2px solid var(--cream);
+  box-shadow: 0 2px 6px rgba(15, 26, 18, 0.35);
+  cursor: pointer;
+  transition: transform .15s var(--ease);
+}
+.kih-marker:hover { transform: scale(1.15); z-index: 1; }
+
 /* ============================ KIHELKONNAPANEEL (jagatud) ====================
    Sama komponent kahes kontekstis:
    - #map-panel  : kaardilehel, fikseeritud akna serva

@@ -528,7 +528,25 @@
 
     const panel = opts.panel;
     let lukus = false;
-    const markerid = []; // { marker, sfaar } — sfäärifiltri jaoks
+    const markerid = []; // { marker, el, grupp } — number-markerid kihelkondade kaupa
+
+    // Nummerdab ja värvib kihelkonna-markerid vastavalt sfäärifiltrile.
+    // Tühi/null filter = arvesta kõiki olendeid. Number = sobivate olendite
+    // arv selles kihelkonnas; värv tuleb grupi levinuimast sfäärist.
+    function uuendaMarkerid(valik) {
+      markerid.forEach(({ marker, el, grupp }) => {
+        const nähtavad = (!valik || valik.size === 0)
+          ? grupp
+          : grupp.filter((o) => valik.has(o.sfaar));
+        if (!nähtavad.length) { marker.getElement().style.display = 'none'; return; }
+        marker.getElement().style.display = '';
+        el.textContent = nähtavad.length;
+        const loend = {};
+        nähtavad.forEach((o) => { loend[o.sfaar] = (loend[o.sfaar] || 0) + 1; });
+        const domSfaar = Object.keys(loend).sort((a, b) => loend[b] - loend[a])[0];
+        el.style.setProperty('--marker-color', SFAAR_COLORS[domSfaar] || '#555');
+      });
+    }
 
     const tõstaEsile = (nimi, op) =>
       map.setPaintProperty('kih-fill', 'fill-opacity',
@@ -602,24 +620,40 @@
         if (!f.length) suljePaneel();
       });
 
-      // Olendimarkerid sfääri värviga — samad mõlemal kaardil
+      // Number-markerid: ÜKS koondmarker kihelkonna kohta (mitte üks pin
+      // olendi kohta), et samasse kihelkonda ei kuhjuks pin'e. Klõps avab
+      // sama külgpaneeli nagu klõps kihelkonna alal.
       try {
         const olendid = await laeOlendidCache();
+        // Rühmita avaldatud olendid ESIMESE asukoha kihelkonna järgi
+        const grupid = new Map(); // kihelkonna NIMI -> [olend, ...]
         olendid
           .filter((o) => o.staatus === 'avaldatud' && o.asukohad && o.asukohad.length)
           .forEach((o) => {
-            const feat = state.geojson.features.find((f) => f.properties.NIMI === o.asukohad[0].kihelkond);
-            if (!feat) return;
-            const marker = new mapboxgl.Marker({ color: SFAAR_COLORS[o.sfaar] || '#555', scale: 0.85 })
-              .setLngLat(kihelkondKeskpunkt(feat))
-              .setPopup(new mapboxgl.Popup({ offset: 25, closeButton: false })
-                .setHTML(
-                  `<strong>${esc(o.nimi)}</strong><br><small>${esc(sfaarNimi(o.sfaar))}</small>` +
-                  `<br><a href="#/olend/${Number(o.id)}">${esc(t('vaata-olendit'))}</a>`
-                ))
-              .addTo(map);
-            markerid.push({ marker, sfaar: o.sfaar });
+            const kihNimi = o.asukohad[0].kihelkond;
+            if (!grupid.has(kihNimi)) grupid.set(kihNimi, []);
+            grupid.get(kihNimi).push(o);
           });
+
+        grupid.forEach((grupp, kihNimi) => {
+          const feat = state.geojson.features.find((f) => f.properties.NIMI === kihNimi);
+          if (!feat) return;
+          const el = document.createElement('div');
+          el.className = 'kih-marker';
+          el.title = kihNimi;
+          el.addEventListener('click', async (ev) => {
+            ev.stopPropagation();
+            lukus = true;
+            panel.root.classList.add('visible', 'locked');
+            tõstaEsile(kihNimi, 0.62);
+            await näitaKihelkond(feat.properties, panel);
+          });
+          const marker = new mapboxgl.Marker({ element: el })
+            .setLngLat(kihelkondKeskpunkt(feat))
+            .addTo(map);
+          markerid.push({ marker, el, grupp });
+        });
+        uuendaMarkerid(state.sfaarFilter); // esmane number + värv
       } catch (_) { /* markerite puudumine ei riku kaarti */ }
     });
 
@@ -628,13 +662,8 @@
     return {
       map,
       resize: () => setTimeout(() => map.resize(), 60),
-      /** Sfäärifilter: tühi Set või null = näita kõiki markereid. */
-      setSfaarFilter(valik) {
-        markerid.forEach(({ marker, sfaar }) => {
-          const näita = !valik || valik.size === 0 || valik.has(sfaar);
-          marker.getElement().style.display = näita ? '' : 'none';
-        });
-      },
+      /** Sfäärifilter: tühi Set või null = arvesta kõiki olendeid. */
+      setSfaarFilter(valik) { uuendaMarkerid(valik); },
     };
   }
 
