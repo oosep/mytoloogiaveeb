@@ -1,10 +1,10 @@
 -- ===========================================================================
---  Eesti Mütoloogiaveeb — database.sql
+--  Eesti Mütoloogiaveeb database.sql
 --  ---------------------------------------------------------------------------
 --  Andmebaasi skeem ja testandmed.
 --
 --  Seda faili kasutab server.js automaatselt SQLite andmebaasi loomiseks.
---  Kõik CREATE laused on IF NOT EXISTS (idempotentne) — turvaline korduvaks
+--  Kõik CREATE laused on IF NOT EXISTS (idempotentne) turvaline korduvaks
 --  käivitamiseks.
 --
 --  MYSQL MIGRATSIOON (Zone.ee natiivne MySQL):
