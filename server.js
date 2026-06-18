@@ -14,7 +14,7 @@
  *   npm start
  *
  * Server serveerib ka staatilisi faile kaustast /public, seega kogu rakendus
- * (frontend + backend) töötab ühest Node protsessist — ideaalne Zone.ee jaoks.
+ * (frontend + backend) töötab ühest Node protsessist ideaalne Zone.ee jaoks.
  */
 
 const path = require('path');
@@ -208,7 +208,7 @@ const LUBATUD_SFAARID = ['Mets', 'Vesi', 'Kodu', 'Ilm', 'Kivid ja koopad', 'Põr
  * TURVAPARANDUS: kontrollib, et URL kasutab AINULT http(s) protokolli.
  * Miks: frontend paneb need väärtused <img src>, <audio src> ja <a href>
  * atribuutidesse. HTML-escape (esc) kaitseb märgendisüsti eest, aga MITTE
- * "javascript:alert(1)" stiilis protokollisüsti eest — <a href="javascript:...">
+ * "javascript:alert(1)" stiilis protokollisüsti eest  <a href="javascript:...">
  * käivitaks koodi kasutaja klõpsul. Valideerime serveris (mitte ainult
  * kliendis!), sest API-t saab kutsuda ka otse, vormist mööda minnes.
  */
@@ -228,7 +228,7 @@ const MANUSE_VIITE_RE = /^\/api\/failid\/([a-f0-9]{32})$/;
 /**
  * Meedia-URL (pilt_url / heli_url) on lubatud, kui see on KAS sisemine
  * üleslaaditud manuse viide VÕI tavaline http(s) URL (pärand-kirjed). Muu
- * (javascript:, data: jne) lükatakse tagasi — vt onTurvalineUrl.
+ * (javascript:, data: jne) lükatakse tagasi  vt onTurvalineUrl.
  */
 function onTurvalineMeediaUrl(u) {
   if (!u) return true;
@@ -276,7 +276,7 @@ function valideeriOlend(body) {
   if (body.pilt_url && body.pilt_url.length > 1000) vead.push('Pildi URL on liiga pikk.');
   if (body.heli_url && body.heli_url.length > 1000) vead.push('Heli URL on liiga pikk.');
 
-  // TURVAPARANDUS: protokollikontroll — väldi javascript:/data: URL-e.
+  // TURVAPARANDUS: protokollikontroll väldi javascript:/data: URL-e.
   // Meediaväljad lubavad ka sisemist üleslaaditud manuse viidet (/api/failid/<id>).
   if (!onTurvalineMeediaUrl(body.pilt_url)) vead.push('Pildi URL peab olema üleslaaditud fail või http(s)-aadress.');
   if (!onTurvalineMeediaUrl(body.heli_url)) vead.push('Heli URL peab olema üleslaaditud fail või http(s)-aadress.');
@@ -302,7 +302,7 @@ function valideeriOlend(body) {
 }
 
 // --- Audit log ------------------------------------------------------------
-// TURVAPARANDUS: logisüsti tõkestamine. Kasutajanimi tuleb kasutaja käest —
+// TURVAPARANDUS: logisüsti tõkestamine. Kasutajanimi tuleb kasutaja käest 
 // kui see sisaldaks reavahetust (\n), saaks ründaja logisse "võltsida" terve
 // uue [AUDIT] rea ja varjata oma tegevust. Eemaldame kõik kontrollmärgid.
 function puhastaLogiks(s) {
@@ -467,7 +467,7 @@ function seedData() {
   const olendCount = db.prepare('SELECT COUNT(*) AS c FROM olendid').get().c;
   if (olendCount === 0) {
     const adminRida = db.prepare("SELECT id FROM kasutajad WHERE kasutajanimi='admin'").get();
-    if (!adminRida) return; // tootmises ilma ADMIN_PAROOL-ita pole autorit — ei külva näidisandmeid
+    if (!adminRida) return; // tootmises ilma ADMIN_PAROOL-ita pole autorit ei külva näidisandmeid
     const adminId = adminRida.id;
     const insertOlend = db.prepare(`
       INSERT INTO olendid (nimi, kirjeldus, sfaar, staatus, pilt_url, heli_url, autor_id)
@@ -693,7 +693,7 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
   }
   const hash = bcrypt.hashSync(parool, 12); // 10 -> 12: tugevam räsi
   // Avalik registreerimine annab AINULT 'kasutaja' rolli (külastaja).
-  // Toimetaja/admin õigused annab admin käsitsi — väldib õiguste eskalatsiooni.
+  // Toimetaja/admin õigused annab admin käsitsi väldib õiguste eskalatsiooni.
   const info = db
     .prepare('INSERT INTO kasutajad (kasutajanimi, email, parool, roll) VALUES (?, ?, ?, ?)')
     .run(kasutajanimi.trim(), email.trim().toLowerCase(), hash, 'kasutaja');
@@ -986,7 +986,7 @@ app.delete('/api/lemmikud/:id', valiideeriId, authRequired, (req, res) => {
 //   * Serveerimine: ainult läbi GET /api/failid/:id, range ID-kontroll
 //     (path traversal võimatu), nosniff + sandbox-CSP päised.
 
-// Multer hoiab faili mälus (max 20 MB) — me EI kirjuta kettale enne valideerimist.
+// Multer hoiab faili mälus (max 20 MB) me EI kirjuta kettale enne valideerimist.
 const ülesLaadija = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: failid.PIIRID.HELI_MAX_BAIT, files: 1, fields: 5, parts: 10 },
@@ -1005,7 +1005,7 @@ app.post('/api/failid', uploadLimiter, authRequired, rollRequired('toimetaja', '
       return res.status(400).json({ viga: 'Fail puudub (välja nimi peab olema "fail").' });
     }
 
-    // Oodatav liik vormilt ('pilt' | 'heli') — lõplik otsus tehakse sisu järgi
+    // Oodatav liik vormilt ('pilt' | 'heli') lõplik otsus tehakse sisu järgi
     const oodatudLiik = ['pilt', 'heli'].includes(req.body.liik) ? req.body.liik : null;
     const v = failid.valideeriFail(req.file.buffer, oodatudLiik);
     if (!v.ok) {
@@ -1047,7 +1047,7 @@ app.post('/api/failid', uploadLimiter, authRequired, rollRequired('toimetaja', '
   });
 });
 
-// Serveerimine — AINUS viis üleslaaditud faili kätte saada.
+// Serveerimine AINUS viis üleslaaditud faili kätte saada.
 // Avalik, kui fail on seotud avaldatud olendiga; muidu omanik/toimetaja/admin.
 app.get('/api/failid/:id', (req, res) => {
   const id = req.params.id;
@@ -1081,7 +1081,7 @@ app.get('/api/failid/:id', (req, res) => {
   res.send(sisu);
 });
 
-// Kustutamine — omanik või admin. Fail kirjutatakse enne eemaldamist üle.
+// Kustutamine omanik või admin. Fail kirjutatakse enne eemaldamist üle.
 app.delete('/api/failid/:id', authRequired, (req, res) => {
   const id = req.params.id;
   if (!failid.onTurvalineId(id)) return res.status(404).json({ viga: 'Faili ei leitud.' });
@@ -1110,7 +1110,7 @@ app.get('/api/sfaarid', (req, res) => {
   });
 });
 
-// Avalik konfiguratsioon — tagastab ainult need võtmed, mida frontend vajab.
+// Avalik konfiguratsioon tagastab ainult need võtmed, mida frontend vajab.
 // Mapboxi võti loetakse keskkonnamuutujast, mitte koodist.
 app.get('/api/config', (req, res) => {
   res.json({
