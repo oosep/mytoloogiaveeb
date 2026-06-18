@@ -206,7 +206,7 @@ node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 6. Ava domeen ja logi sisse kasutajaga `admin` ning parooliga, mille panid
    `ADMIN_PAROOL`-i.
 
-> `PORT`-i ei pea seadma — Railway annab selle ise ja rakendus kasutab
+> `PORT`-i ei pea seadma Railway annab selle ise ja rakendus kasutab
 > `process.env.PORT`. Sama juhend kehtib ka oma serveri või Zone.ee puhul:
 > seadista samad keskkonnamuutujad ja taga, et rakendus on **HTTPS-i taga**
 > (turvaküpsised vajavad HTTPS-i).
@@ -314,5 +314,5 @@ andmebaasikiht (`better-sqlite3` → `mysql2`).
 
 ## Litsents
 
-See projekt on litsentseeritud **MIT litsentsi** alusel — vaata
+See projekt on litsentseeritud **MIT litsentsi** alusel vaata
 [`LICENSE`](LICENSE) faili täisteksti jaoks.
