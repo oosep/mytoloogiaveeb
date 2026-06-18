@@ -52,14 +52,14 @@ raamistikku ei kasutata.
 
 ## Vaated (V1–V6)
 
-1. **V1 Avaleht** — hero, otsing, sfäärid, esiletõstetud olendid
-2. **V2 Olendite nimekiri** — filtreerimine (otsing, sfäär, kihelkond) + sortimine
-3. **V3 Olendi detail** — pilt (lightbox), kirjeldus, helimängija, asukohakaart, allikad, seotud olendid
-4. **V4 Admin** — tabel staatustega (roheline/hall/kollane), staatuse muutmine, kustutamine
-5. **V5 Profiil** — kasutaja andmed, roll, lemmikud
-6. **V6 Vorm** — uue olendi lisamine / muutmine, dünaamilised asukohad ja allikaviited
+1. **V1 Avaleht** - hero, otsing, sfäärid, esiletõstetud olendid
+2. **V2 Olendite nimekiri** - filtreerimine (otsing, sfäär, kihelkond) + sortimine
+3. **V3 Olendi detail** - pilt (lightbox), kirjeldus, helimängija, asukohakaart, allikad, seotud olendid
+4. **V4 Admin** - tabel staatustega (roheline/hall/kollane), staatuse muutmine, kustutamine
+5. **V5 Profiil** - kasutaja andmed, roll, lemmikud
+6. **V6 Vorm** - uue olendi lisamine / muutmine, dünaamilised asukohad ja allikaviited
 
-## Failistruktuur — kus mida muuta
+## Failistruktuur - kus mida muuta
 
 | Fail / kaust | Sisu |
 |--------------|------|
@@ -141,7 +141,7 @@ Süsteemis on kolm rolli: **kasutaja**, **toimetaja** ja **admin**.
 - **Kasutaja** saab sirvida, otsida ja salvestada lemmikuid.
 
 **Registreerimisel saab iga uus konto alati rolli `kasutaja`** (turvakaalutlustel
-— see väldib õiguste eskaleerumist). Toimetaja või administraatori õiguste
+see väldib õiguste eskaleerumist). Toimetaja või administraatori õiguste
 andmiseks peab olemasolev administraator muutma kasutaja rolli **otse
 andmebaasis** (selleks eraldi liidest ei ole):
 
@@ -152,7 +152,7 @@ UPDATE kasutajad SET roll='toimetaja' WHERE kasutajanimi='kasutajanimi';
 ### Arenduse testkasutajad
 
 > ⚠️ **Need testkasutajad luuakse AINULT arendusrežiimis** (kui `NODE_ENV` ei ole
-> `production`). **Toodangus neid kontosid EI looda** — esmane administraator
+> `production`). **Toodangus neid kontosid EI looda**  esmane administraator
 > luuakse `ADMIN_PAROOL` keskkonnamuutujast (vt jaotist „Toodangurežiimi
 > seadistamine"). Ära kunagi kasuta neid vaikeparoole avalikus toodangus.
 
@@ -165,8 +165,8 @@ UPDATE kasutajad SET roll='toimetaja' WHERE kasutajanimi='kasutajanimi';
 ## Toodangurežiimi seadistamine (avalik juurutamine)
 
 Rakendusel on kaks režiimi: **arendusrežiim** (vaikimisi, lokaalseks tööks) ja
-**toodangurežiim** (avalikuks kasutamiseks). Avalikult — nt Tartu
-Kirjandusmuuseumi serveris või pilvemajutajas (Railway) — tuleb käivitada
+**toodangurežiim** (avalikuks kasutamiseks). Avalikult  nt Tartu
+Kirjandusmuuseumi serveris või pilvemajutajas (Railway)  tuleb käivitada
 **toodangurežiimis**, sest see lülitab sisse turvalised küpsised, range
 CSRF-kaitse ja jätab ära ebaturvalised vaikekasutajad.
 
@@ -222,7 +222,7 @@ Registreerimine vajab toodangus Cloudflare Turnstile võtmeid:
 
 > Ainult **testimiseks** pakub Cloudflare „alati läbiva" testvõtmepaari
 > (`1x00000000000000000000AA` / `1x0000000000000000000000000000000AA`), mis
-> töötab igal domeenil. **Neid ei tohi jätta päris toodangusse** — vaheta enne
+> töötab igal domeenil. **Neid ei tohi jätta päris toodangusse** - vaheta enne
 > avalikku kasutust päris võtmete vastu.
 
 ### Kriitilised kohad (lollikindel kontroll)
@@ -233,7 +233,7 @@ Registreerimine vajab toodangus Cloudflare Turnstile võtmeid:
   kõige sagedasem viga.
 - **Esmane admin ja näidisolendid külvatakse ainult tühja andmebaasiga.**
   Esimesel toodangukäivitusel tekib admin `ADMIN_PAROOL`-ist. Kui andmebaas on
-  juba olemas (varasemast käivitusest), admini ei looda — siis kustuta
+  juba olemas (varasemast käivitusest), admini ei looda - siis kustuta
   `mytoloogia.db` ja käivita uuesti.
 - **`JWT_SECRET` peab toodangus olema vähemalt 32 märki**, muidu server keeldub
   käivitumast (turvakaitse).
@@ -247,24 +247,24 @@ Registreerimine vajab toodangus Cloudflare Turnstile võtmeid:
 5. Sisse- ja väljalogimine → sessioon püsib (HTTPS + turvaküpsis).
 
 > **Märkus:** rakenduse sisene privaatsuspoliitika tekst (`public/app.js`)
-> viitab majutajale — uue hosti puhul uuenda see õige majutaja nimega.
+> viitab majutajale  uue hosti puhul uuenda see õige majutaja nimega.
 
 ## Andmebaasi struktuur
 
 Andmebaas luuakse automaatselt failist `database.sql` (või `server.js`
-sisseehitatud skeemist). Kõik laused on `IF NOT EXISTS` — korduv käivitamine on
+sisseehitatud skeemist). Kõik laused on `IF NOT EXISTS`  korduv käivitamine on
 turvaline. Allpool tabelite ülevaade; täielik skeem koos kommentaaride ja
 MySQL-migratsiooni juhistega on failis [`database.sql`](database.sql).
 
 **Tabelid:**
 
-- `kasutajad` — kasutajakontod (kasutajanimi, e-post, bcrypt-räsitud parool, roll)
-- `olendid` — mütoloogilised olendid (nimi, kirjeldus, sfäär, staatus, pilt, heli, autor)
-- `olendi_asukohad` — olendi seos 1917. a kihelkondadega (kihelkond, maakond)
-- `allikad` — olendi allikaviited (viide, URL)
-- `lemmikud` — kasutaja ja olendi seos (lemmikud)
-- `manused` — üleslaaditud piltide/helifailide metaandmed (failid ise asuvad `uploads/` väljaspool veebijuurikat)
-- `audit_logi` — turvalogi (sisselogimiskatsed, failitegevused jne)
+- `kasutajad`  kasutajakontod (kasutajanimi, e-post, bcrypt-räsitud parool, roll)
+- `olendid`  mütoloogilised olendid (nimi, kirjeldus, sfäär, staatus, pilt, heli, autor)
+- `olendi_asukohad`  olendi seos 1917. a kihelkondadega (kihelkond, maakond)
+- `allikad`  olendi allikaviited (viide, URL)
+- `lemmikud`  kasutaja ja olendi seos (lemmikud)
+- `manused`  üleslaaditud piltide/helifailide metaandmed (failid ise asuvad `uploads/` väljaspool veebijuurikat)
+- `audit_logi`  turvalogi (sisselogimiskatsed, failitegevused jne)
 
 Näidis — kasutajate tabeli loomise lause (kopeeritav):
 
@@ -279,7 +279,7 @@ CREATE TABLE IF NOT EXISTS kasutajad (
 );
 ```
 
-Paroole ei külvata kunagi SQL-failist — testkasutajad luuakse `server.js`
+Paroole ei külvata kunagi SQL-failist testkasutajad luuakse `server.js`
 funktsioonis `seedData()`, kus paroolid bcrypt-räsitakse. Nii ei hoita paroole
 kunagi avatekstina.
 
